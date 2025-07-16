@@ -1,0 +1,623 @@
+{
+  "@@locale": "ar",
+  "appTitle": "أكاديمية السباحة",
+  
+  "home": "الرئيسية",
+  "threads": "المحادثات",
+  "gear": "الأدوات ",
+  "profile": "الملف الشخصي",
+  "welcome": "مرحباً {name}",
+  "@welcome": {
+    "description": "Welcome message with user first name",
+    "placeholders": {
+      "name": {}
+    }
+  },
+  "coachDashboard": "لوحة تحكم المدرب",
+  "loadingDashboard": "جارٍ تحميل لوحة التحكم...",
+  "failedToLoadProfile": "فشل تحميل الملف الشخصي",
+  "failedToLoadProfileData": "فشل تحميل بيانات الملف الشخصي",
+  
+  "registrationRequests": "طلبات التسجيل",
+  "attendance": "الحضور",
+  "weeklyAttendance": "الحضور الأسبوعي",
+  "attendanceCalendar": "تقويم الحضور",
+  "monthlyAttendanceCalendar": "تقويم الحضور الشهري",
+  "athletesList": "قائمة الرياضيين",
+  "swimMeetPerformance": "أداء المسابقات",
+  "attendanceSeason": "حضور الموسم",
+  "payments": "المدفوعات",
+  "switchBranch": "تبديل الفرع",
+  
+  "featureComingSoon": "ميزة {feature} قادمة قريباً!",
+  "@featureComingSoon": {
+    "description": "Feature coming soon message",
+    "placeholders": {
+      "feature": {}
+    }
+  },
+  "comingSoon": "ميزة {feature} قادمة قريباً!",
+  "@comingSoon": {
+    "placeholders": {
+      "feature": {}
+    }
+  },
+  "comingSoonFeature": "ميزة {feature} قادمة قريباً!",
+  "@comingSoonFeature": {
+    "placeholders": {
+      "feature": {}
+    }
+  },
+  
+  "switchBranchTitle": "تبديل الفرع",
+  "loadingBranches": "جارٍ تحميل الفروع...",
+  "noBranchesAvailable": "لا توجد فروع متاحة",
+  "noBranchesDescription": "لم يتم تهيئة أي فروع في النظام.",
+  "currentBranch": "الفرع الحالي",
+  "active": "نشط",
+  "switchToBranch": "التبديل إلى الفرع",
+  "switching": "جارٍ التبديل...",
+  "branchDetails": "تفاصيل الفرع",
+  "close": "إغلاق",
+  "cancel": "إلغاء",
+  "switch": "تبديل",
+  "switchButton": "تبديل",
+  "address": "العنوان",
+  "phone": "الهاتف",
+  "practiceDays": "أيام التدريب",
+  "branchId": "معرف الفرع",
+  "videoUrl": "رابط الفيديو",
+  "alreadyManaging": "أنت تدير بالفعل {branchName}",
+  "@alreadyManaging": {
+    "placeholders": {
+      "branchName": {}
+    }
+  },
+  "switchBranchConfirm": "هل تريد التبديل إلى {branchName}؟",
+  "@switchBranchConfirm": {
+    "placeholders": {
+      "branchName": {}
+    }
+  },
+  "switchBranchDescription": "سيؤدي هذا إلى تحديث جميع عروض البيانات لعرض معلومات {branchName}.",
+  "@switchBranchDescription": {
+    "placeholders": {
+      "branchName": {}
+    }
+  },
+  "switchedToBranch": "تم التبديل إلى {branchName}",
+  "@switchedToBranch": {
+    "placeholders": {
+      "branchName": {}
+    }
+  },
+  "failedToLoadBranches": "فشل تحميل الفروع",
+  "failedToSwitchBranch": "فشل تبديل الفرع",
+  "refresh": "تحديث",
+  
+  "changePasswordTitle": "تغيير كلمة المرور",
+  "securitySettings": "إعدادات الأمان",
+  "updatePasswordPrompt": "قم بتحديث كلمة المرور الخاصة بك للحفاظ على أمان حسابك",
+  "currentPassword": "كلمة المرور الحالية",
+  "enterCurrentPassword": "أدخل كلمة المرور الحالية",
+  "newPassword": "كلمة المرور الجديدة",
+  "newPasswordHint": "8 أحرف على الأقل، تتضمن رمزًا خاصًا",
+  "confirmNewPassword": "تأكيد كلمة المرور الجديدة",
+  "confirmPasswordHint": "أعد إدخال كلمة المرور الجديدة",
+  "passwordStrength": "قوة كلمة المرور",
+  "passwordTooShort": "قصير جدًا (8 أحرف على الأقل)",
+  "passwordNeedsSpecialChar": "ضعيف (يتطلب رمزًا خاصًا)",
+  "passwordWeak": "ضعيف",
+  "passwordModerate": "متوسط",
+  "passwordFair": "جيد",
+  "passwordGood": "جيد جدًا",
+  "passwordStrong": "قوي",
+  "passwordTips": "نصائح كلمة المرور",
+  "passwordTipLength": "استخدم 8 أحرف على الأقل",
+  "passwordTipCase": "تضمين أحرف كبيرة وصغيرة",
+  "passwordTipSpecial": "إضافة أرقام ورموز خاصة (مثل !@#$)",
+  "passwordTipAvoid": "تجنب الكلمات الشائعة أو المعلومات الشخصية",
+  "changePasswordButton": "تغيير كلمة المرور",
+  "passwordChangedSuccess": "تم تغيير كلمة المرور بنجاح. يرجى استخدام كلمة المرور الجديدة لتسجيل الدخول في المستقبل.",
+  "success": "نجاح!",
+  "ok": "موافق",
+  "pleaseEnterCurrentPassword": "يرجى إدخال كلمة المرور الحالية",
+  "pleaseEnterNewPassword": "يرجى إدخال كلمة المرور الجديدة",
+  "passwordMinLength": "يجب أن تكون كلمة المرور 8 أحرف على الأقل",
+  "passwordNeedsSpecialCharacter": "يجب أن تحتوي كلمة المرور على رمز خاص واحد على الأقل",
+  "passwordsDoNotMatch": "كلمتا المرور غير متطابقتين",
+  "passwordSameAsCurrent": "يجب أن تكون كلمة المرور الجديدة مختلفة عن الحالية",
+  "failedToChangePassword": "فشل في تغيير كلمة المرور",
+  "changePassword": "تغيير كلمة المرور",
+  
+  "coachLoginTitle": "تسجيل دخول المدرب",
+  "teamManagementPortal": "بوابة إدارة الفريق",
+  "emailAddress": "عنوان البريد الإلكتروني",
+  "emailHint": "coach@example.com",
+  "password": "كلمة المرور",
+  "passwordHint": "أدخل كلمة المرور الخاصة بك",
+  "forgotPassword": "نسيت كلمة المرور؟",
+  "loginAsCoach": "تسجيل الدخول كمدرب",
+  "coachPortal": "بوابة المدرب",
+  "coachPortalDescription": "الوصول إلى أدوات إدارة الفريق، تتبع الحضور، وميزات تسجيل الرياضيين.",
+  "pleaseEnterEmail": "يرجى إدخال بريدك الإلكتروني",
+  "invalidEmail": "يرجى إدخال بريد إلكتروني صالح",
+  "pleaseEnterPassword": "يرجى إدخال كلمة المرور",
+  "passwordTooShortLogin": "يجب أن تكون كلمة المرور 6 أحرف على الأقل",
+  "loginFailed": "فشل تسجيل الدخول",
+  "accessDeniedCoachOnly": "تم رفض الوصول. هذا التسجيل مخصص للمدربين فقط.",
+  "networkError": "خطأ في الشبكة. يرجى المحاولة مرة أخرى.",
+  
+  "profileTitle": "ملف المدرب",
+  "loadingProfile": "جارٍ تحميل الملف...",
+  "error": "خطأ",
+  "retry": "إعادة المحاولة",
+  "quickActions": "إجراءات سريعة",
+  "editProfile": "تعديل الملف الشخصي",
+  "logout": "تسجيل الخروج",
+  "branchAttendanceSummary": "ملخص حضور الفرع",
+  "language": "اللغة",
+  "arabic": "العربية",
+  "english": "الإنجليزية",
+  "logoutTitle": "تسجيل الخروج",
+  "logoutMessage": "هل أنت متأكد أنك تريد تسجيل الخروج؟",
+  "confirm": "تأكيد",
+  "failedToLogout": "فشل في تسجيل الخروج",
+  "languageChangedToArabic": "تم تغيير اللغة إلى العربية",
+  "languageChangedToEnglish": "تم تغيير اللغة إلى الإنجليزية",
+  "branchGroupTitle": "مجموعة الفرع",
+  
+  "loadingMessages": "جارٍ تحميل الرسائل...",
+  "noMessagesYet": "لا توجد رسائل بعد",
+  "startConversation": "ابدأ المحادثة! 👋",
+  "anErrorOccurred": "حدث خطأ",
+  "typeAMessage": "اكتب رسالة...",
+  "online": "متصل",
+  "unknownBranch": "فرع غير معروف",
+  "failedToSendMessage": "فشل في إرسال الرسالة",
+  
+  "gearInformationTitle": "معلومات الأدوات ",
+  "editGearTitle": "تعديل معلومات الأدوات",
+  "gearDescription": "هذا القسم مخصص لمعدات التدريب. الأدوات المعروضة متوفرة بالفعل للرياضيين. يمكنك إضافة أي معدات جديدة تريد إضافتها والضغط على تحديث.",
+  "gearHintText": "أدخل متطلبات الأدوات أو قوائم الأدوات أو ملاحظات مهمة...",
+  "updateGearButton": "تحديث معلومات الأدوات",
+  "readOnlyMessage": "للقراءة فقط • يمكن للمدربين الرئيسيين فقط تعديل الأدوات",
+  "loadingGearInformation": "جارٍ تحميل معلومات الأدوات...",
+  "unknownErrorOccurred": "حدث خطأ غير معروف",
+  "updating": "جارٍ التحديث...",
+  "gearUpdateSuccess": "تم تحديث معلومات الأدوات بنجاح!",
+  "gearUpdateFailed": "فشل في تحديث الأدوات",
+  
+  "weeklyAttendanceTitle": "🏊 الحضور الأسبوعي",
+  "day1": "اليوم الأول",
+  "day2": "اليوم الثاني",
+  "day3": "اليوم الثالث",
+  "failedToGetUserProfile": "فشل في الحصول على ملف المستخدم: {error}",
+  "@failedToGetUserProfile": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "branchIdNotFound": "لم يتم العثور على معرف الفرع في ملف المستخدم",
+  "failedToLoadUserProfile": "فشل في تحميل ملف المستخدم",
+  "noSessionDatesConfigured": "لم يتم تكوين تواريخ الجلسات لهذا الفرع",
+  "failedToLoadSessionDates": "فشل في تحميل تواريخ الجلسات: {error}",
+  "@failedToLoadSessionDates": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "failedToLoadSessionDatesGeneral": "فشل في تحميل تواريخ الجلسات",
+  "sessionDateNotAvailable": "تاريخ الجلسة غير متاح",
+  "failedToLoadAttendance": "فشل في تحميل الحضور: {error}",
+  "@failedToLoadAttendance": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "failedToLoadAttendanceGeneral": "فشل في تحميل الحضور",
+  "attendanceMarked": "تم تسجيل الحضور كـ {status}",
+  "@attendanceMarked": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "failedToUpdateAttendance": "فشل في تحديث الحضور: {error}",
+  "@failedToUpdateAttendance": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "failedToUpdateAttendanceGeneral": "فشل في تحديث الحضور",
+  "loadingAttendance": "جارٍ تحميل الحضور...",
+  "noAthletesFound": "لم يتم العثور على رياضيين",
+  "noAttendanceDataForDay": "لا توجد بيانات حضور لهذا اليوم",
+  "unknownAthlete": "غير معروف",
+  "missedGear": "معدات مفقودة: {notes}",
+  "@missedGear": {
+    "placeholders": {
+      "notes": {}
+    }
+  },
+  "status": "الحالة: {status}",
+  "@status": {
+    "placeholders": {
+      "status": {}
+    }
+  },
+  "didMissGear": "هل فقد الرياضي أي معدات في التدريب؟",
+  "yes": "نعم",
+  "no": "لا",
+  "typeMissedGearHere": "اكتب الأدوات المفقودة هنا...",
+  "submit": "إرسال",
+  "enterMissedGearNotes": "يرجى إدخال ملاحظات الأدوات المفقودة",
+  
+  "loadingRequests": "جارٍ تحميل الطلبات...",
+  "noPendingRequests": "لا توجد طلبات معلقة",
+  "allRequestsProcessed": "تم معالجة جميع طلبات التسجيل",
+  "pendingRequests": "الطلبات المعلقة",
+  "athletesWaitingApproval": "{count} رياضي في انتظار الموافقة",
+  "@athletesWaitingApproval": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "failedToLoadRequests": "فشل في تحميل طلبات التسجيل: {error}",
+  "@failedToLoadRequests": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "failedToLoadRequestsGeneral": "فشل في تحميل طلبات التسجيل",
+  "approveRegistration": "الموافقة على التسجيل",
+  "approveRegistrationMessage": "هل أنت متأكد من أنك تريد الموافقة على طلب تسجيل {athlete}؟",
+  "@approveRegistrationMessage": {
+    "placeholders": {
+      "athlete": {}
+    }
+  },
+  "approve": "الموافقة",
+  "registrationApproved": "تم قبول التسجيل بنجاح!",
+  "failedToApproveRegistration": "فشل في الموافقة على التسجيل: {error}",
+  "@failedToApproveRegistration": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "failedToApproveRegistrationGeneral": "فشل في الموافقة على التسجيل",
+  "rejectRegistration": "رفض التسجيل",
+  "rejectRegistrationMessage": "هل أنت متأكد من أنك تريد رفض طلب تسجيل {athlete}؟\n\nلا يمكن التراجع عن هذا الإجراء.",
+  "@rejectRegistrationMessage": {
+    "placeholders": {
+      "athlete": {}
+    }
+  },
+  "reject": "رفض",
+  "registrationRejected": "تم رفض طلب التسجيل",
+  "failedToRejectRegistration": "فشل في رفض التسجيل: {error}",
+  "@failedToRejectRegistration": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "failedToRejectRegistrationGeneral": "فشل في رفض التسجيل",
+  "pending": "معلق",
+  "processing": "جارٍ المعالجة...",
+  "unknown": "غير معروف",
+  "invalidDate": "تاريخ غير صالح",
+  "submitted": "تم الإرسال {date}",
+  "@submitted": {
+    "placeholders": {
+      "date": {}
+    }
+  },
+  "noEmail": "لا يوجد بريد إلكتروني",
+  "noPhone": "لا يوجد هاتف",
+  
+  "monthlyAttendance": "الحضور الشهري",
+  "loadingAthletes": "جارٍ تحميل الرياضيين والحضور...",
+  "errorLoadingAthletes": "خطأ في تحميل الرياضيين",
+  "noAthletesRegistered": "لا يوجد رياضيون مسجلون في هذا الفرع",
+  "monthlyAttendanceOverview": "نظرة عامة على الحضور الشهري",
+  "athletesInBranch": "{count, plural, =1 {رياضي واحد في فرعك} other {{count} رياضي في فرعك}}",
+  "@athletesInBranch": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "searchAthletes": "البحث عن الرياضيين...",
+  "failedToLoadAthletes": "فشل في تحميل الرياضيين: {error}",
+  "@failedToLoadAthletes": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "failedToLoadAthletesGeneral": "فشل في تحميل الرياضيين",
+  "athletesManagement": "إدارة الرياضيين",
+  "athleteId": "المعرف: {id}",
+  "searchAthletes": "ابحث عن الرياضيين...",
+  "noAthletesFound": "لا يوجد رياضيون",
+  "noAthletesRegistered": "لا يوجد رياضيون مسجلون في الأكاديمية",
+  "deleteAthlete": "حذف الرياضي",
+  "deleteAthleteConfirm": "هل أنت متأكد أنك تريد حذف {name} نهائيًا؟",
+  "deleteAthleteWarning": "⚠️ لا يمكن التراجع عن هذا الإجراء!",
+  "deleteAthleteDetails": "• سيفقد الرياضي حق الدخول لحسابه نهائيًا\n• سيتم حذف جميع بياناته نهائياً\n• هذا الإجراء غير قابل للاسترجاع",
+  "delete": "حذف للأبد",
+  "cancel": "إلغاء",
+  "errorLoadingAthletes": "حدث خطأ أثناء تحميل الرياضيين",
+  "loadingAthletes": "جارٍ تحميل الرياضيين...",
+  "retry": "إعادة المحاولة",
+  "deleteAthleteSuccess": "تم حذف {name} نهائيًا",
+  "deleteAthleteFailed": "فشل في حذف الرياضي: {error}",
+  "athletesInAcademy": "{count, plural, =1 {رياضي واحد في الأكاديمية} other {{count} رياضيين في الأكاديمية}}",
+  "unknown": "غير معروف",
+  "invalidId": "معرف رياضي غير صالح",
+  "refresh": "تحديث",
+  "noEmail": "لا يوجد بريد إلكتروني",
+  "athlete": "اللاعب",
+  "monthlyAttendance": "الحضور الشهري",
+  "presentWithGear": "حضور + معدات كاملة",
+  "presentWithoutGear": "حضور - نقص معدات",
+  "absent": "غياب",
+  "monthlyStatistics": "إحصائيات الشهر",
+  "attendanceRate": "معدل الحضور",
+  "daysPresent": "أيام الحضور",
+  "daysAbsent": "أيام الغياب",
+  "gearIssues": "ملاحظات الأدوات",
+  "missedGearDetails": "تفاصيل الأدوات الناقصة",
+  "perfectNoGearMissed": "رائع! لم يتم نسيان أي معدات هذا الشهر.",
+  "notes": "ملاحظات:",
+  "missedGear": "الأدوات الناقصة:",
+  "noAttendanceDataForDay": "لا يوجد حضور لهذا اليوم",
+  "close": "إغلاق",
+  "daysOfWeek": "الأحد,الاثنين,الثلاثاء,الأربعاء,الخميس,الجمعة,السبت",
+  "january": "يناير",
+  "february": "فبراير",
+  "march": "مارس",
+  "april": "أبريل",
+  "may": "مايو",
+  "june": "يونيو",
+  "july": "يوليو",
+  "august": "أغسطس",
+  "september": "سبتمبر",
+  "october": "أكتوبر",
+  "november": "نوفمبر",
+  "december": "ديسمبر",
+  "athlete": "اللاعب",
+  "monthlyAttendance": "الحضور الشهري",
+  "presentWithGear": "حضور + معدات كاملة",
+  "presentWithoutGear": "حضور - نقص معدات",
+  "absent": "غياب",
+  "monthlyStatistics": "إحصائيات الشهر",
+  "attendanceRate": "معدل الحضور",
+  "daysPresent": "أيام الحضور",
+  "daysAbsent": "أيام الغياب",
+  "gearIssues": "ملاحظات الأدوات",
+  "missedGearDetails": "تفاصيل الأدوات الناقصة",
+  "perfectNoGearMissed": "رائع! لم يتم نسيان أي معدات هذا الشهر.",
+  "notes": "ملاحظات:",
+  "missedGear": "الأدوات الناقصة:",
+  "noAttendanceDataForDay": "لا يوجد حضور لهذا اليوم",
+  "close": "إغلاق",
+  "daysOfWeek": "الأحد,الاثنين,الثلاثاء,الأربعاء,الخميس,الجمعة,السبت",
+  "january": "يناير",
+  "february": "فبراير",
+  "march": "مارس",
+  "april": "أبريل",
+  "may": "مايو",
+  "june": "يونيو",
+  "july": "يوليو",
+  "august": "أغسطس",
+  "september": "سبتمبر",
+  "october": "أكتوبر",
+  "november": "نوفمبر",
+  "december": "ديسمبر",
+  "performanceLogs": "سجلات الأداء",
+  "athletePerformanceLogs": "سجلات أداء الرياضيين",
+  "athletesInBranch": "{count, plural, =1 {رياضي واحد في الفرع} other {{count} رياضيين في الفرع}}",
+  "searchAthletes": "ابحث عن الرياضيين...",
+  "noAthletesFound": "لم يتم العثور على رياضيين",
+  "noAthletesRegisteredBranch": "لا يوجد رياضيون مسجلون في هذا الفرع",
+  "errorLoadingAthletes": "حدث خطأ أثناء تحميل الرياضيين",
+  "retry": "إعادة المحاولة",
+  "viewTimes": "عرض الأوقات",
+  "idField": "المعرف: {id}",
+  "loadingAthletes": "جار تحميل الرياضيين...",
+  "loadingPerformanceLogs": "جار تحميل سجلات الأداء...",
+  "errorLoadingPerformanceLogs": "خطأ في تحميل سجلات الأداء",
+  "noPerformanceLogs": "لا توجد سجلات أداء",
+  "noPerformanceRecords": "لم يتم العثور على سجلات أداء لهذا الرياضي",
+  "performance": "الأداء",
+  "performanceRecord": "{count, plural, =1 {سجل أداء واحد} other {{count} سجلات أداء}}",
+  "unknownAthlete": "رياضي غير معروف",
+  "unknownEvent": "حدث غير معروف",
+  "noTime": "لا يوجد وقت",
+  "trainingSession": "حصة تدريبية",
+  "performanceLogs": "سجلات الأداء",
+  "athletePerformanceLogs": "سجلات أداء الرياضيين",
+  "athletesInBranch": "{count, plural, =1 {رياضي واحد في الفرع} other {{count} رياضيين في الفرع}}",
+  "searchAthletes": "ابحث عن الرياضيين...",
+  "noAthletesFound": "لم يتم العثور على رياضيين",
+  "noAthletesRegisteredBranch": "لا يوجد رياضيين مسجلين في هذا الفرع",
+  "errorLoadingAthletes": "حدث خطأ أثناء تحميل الرياضيين",
+  "retry": "إعادة المحاولة",
+  "viewTimes": "عرض الأوقات",
+  "idField": "المعرف: {id}",
+  "loadingAthletes": "جاري تحميل الرياضيين...",
+  "loadingPerformanceLogs": "جاري تحميل سجلات الأداء...",
+  "errorLoadingPerformanceLogs": "حدث خطأ أثناء تحميل سجلات الأداء",
+  "noPerformanceLogs": "لا يوجد سجلات أداء",
+  "noPerformanceRecords": "لا توجد سجلات أداء لهذا الرياضي",
+  "performance": "الأداء",
+  "performanceRecord": "{count, plural, =1 {سجل أداء واحد} other {{count} سجلات أداء}}",
+  "unknownAthlete": "رياضي غير معروف",
+  "unknownEvent": "حدث غير معروف",
+  "noTime": "لا يوجد وقت",
+  "trainingSession": "حصة تدريبية",
+  "noEmail": "لا يوجد بريد إلكتروني",
+  "paymentManagement": "إدارة المدفوعات",
+  "loadingPaymentData": "جاري تحميل بيانات المدفوعات...",
+  "errorLoadingPaymentData": "حدث خطأ أثناء تحميل بيانات المدفوعات",
+  "retry": "إعادة المحاولة",
+  "noAthletesFound": "لم يتم العثور على رياضيين",
+  "noAthletesRegisteredBranch": "لا يوجد رياضيين مسجلين في هذا الفرع",
+  "monthlyPaymentStatus": "حالة الدفع الشهرية",
+  "paid": "تم الدفع",
+  "pending": "قيد الانتظار",
+  "late": "متأخر",
+  "current": "الحالي:",
+  "searchAthletes": "ابحث عن الرياضيين...",
+  "paymentStatusUpdated": "تم تحديث حالة الدفع بنجاح",
+  "failedToUpdatePaymentStatus": "فشل في تحديث حالة الدفع: {error}",
+  "@failedToUpdatePaymentStatus": {
+    "placeholders": {
+      "error": {}
+    }
+  },
+  "athlete": "رياضي",
+  "unknown": "غير معروف",
+  "refresh": "تحديث",
+  "error": "خطأ",
+  "athletesMeasurements": "قياسات الرياضيين",
+  "measurements": "القياسات",
+  "athleteId": "المعرف: {id}",
+  "@athleteId": {
+    "placeholders": {
+      "id": {}
+    }
+  },
+  "athletesInBranch": "{count, plural, =1 {رياضي واحد في الفرع} other {{count} رياضيين في الفرع}}",
+  "@athletesInBranch": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "loadingAthletes": "جاري تحميل الرياضيين...",
+  "errorLoadingAthletes": "حدث خطأ أثناء تحميل الرياضيين",
+  "retry": "إعادة المحاولة",
+  "noAthletesFound": "لم يتم العثور على رياضيين",
+  "noAthletesRegisteredBranch": "لا يوجد رياضيين مسجلين في هذا الفرع",
+  "searchAthletes": "ابحث عن الرياضيين...",
+  "unknown": "غير معروف",
+  "noEmail": "لا يوجد بريد إلكتروني",
+  "refresh": "تحديث",
+  "error": "خطأ",
+  "loadingMeasurements": "جاري تحميل القياسات...",
+  "errorLoadingMeasurements": "حدث خطأ أثناء تحميل القياسات",
+  "noMeasurements": "لا توجد قياسات",
+  "noMeasurementsForAthlete": "لم يتم العثور على قياسات لهذا الرياضي",
+  "noDataAvailable": "لا توجد بيانات متاحة",
+  "measurementRecord": "تسجيل قياس",
+  "measurementRecords": "تسجيلات قياس",
+  "height": "الطول",
+  "weight": "الوزن",
+  "arm": "الذراع",
+  "leg": "الساق",
+  "fat": "نسبة الدهون",
+  "muscle": "نسبة العضلات",
+  "notRecorded": "غير مسجل",
+  "appTitle": "نادي HFA للسباحة",
+  "signIn": "تسجيل الدخول",
+  "signInToAccount": "سجل دخولك إلى حسابك",
+  "email": "البريد الإلكتروني",
+  "enterEmail": "يرجى إدخال البريد الإلكتروني",
+  "validEmail": "يرجى إدخال بريد إلكتروني صحيح",
+  "password": "كلمة المرور",
+  "enterPassword": "يرجى إدخال كلمة المرور",
+  "forgotPassword": "هل نسيت كلمة المرور؟",
+  "signInBtn": "تسجيل الدخول",
+  "dontHaveAccount": "ليس لديك حساب؟ سجل الآن",
+  "loginFailed": "فشل تسجيل الدخول",
+  "error": "خطأ",
+  "unknownUserType": "نوع المستخدم غير معروف: {userType}",
+  "coachLoginTitle": "تسجيل دخول المدرب",
+  "teamManagementPortal": "بوابة إدارة الفريق",
+  "emailAddress": "البريد الإلكتروني",
+  "emailHint": "أدخل بريدك الإلكتروني",
+  "pleaseEnterEmail": "يرجى إدخال البريد الإلكتروني",
+  "invalidEmail": "يرجى إدخال بريد إلكتروني صحيح",
+  "password": "كلمة المرور",
+  "passwordHint": "أدخل كلمة المرور",
+  "pleaseEnterPassword": "يرجى إدخال كلمة المرور",
+  "passwordTooShortLogin": "يجب أن تتكون كلمة المرور من 6 أحرف على الأقل",
+  "forgotPassword": "هل نسيت كلمة المرور؟",
+  "loginAsCoach": "تسجيل دخول المدرب",
+  "accessDeniedCoachOnly": "الدخول مسموح للمدربين فقط.",
+  "loginFailed": "فشل تسجيل الدخول",
+  "networkError": "خطأ في الاتصال. يرجى المحاولة مرة أخرى.",
+  "coachPortal": "بوابة المدرب",
+  "coachPortalDescription": "دخول خاص بالمدربين لإدارة اللاعبين والجداول والحضور.",
+"branchGroupTitle": "مجموعة الفرع",
+"loadingMessages": "جاري تحميل الرسائل...",
+"error": "خطأ",
+"retry": "إعادة المحاولة",
+"online": "متصل",
+"unknownBranch": "فرع غير معروف",
+"noMessagesYet": "لا توجد رسائل بعد",
+"startConversation": "ابدأ المحادثة",
+"failedToSendMessage": "فشل إرسال الرسالة",
+"anErrorOccurred": "حدث خطأ",
+"typeAMessage": "اكتب رسالة...",
+"branchGroupTitle": "دردشة الفرع",
+  "loadingMessages": "جارٍ تحميل الرسائل...",
+  "error": "حدث خطأ",
+  "anErrorOccurred": "حدث خطأ ما، يرجى المحاولة مرة أخرى",
+  "retry": "إعادة المحاولة",
+  "unknownBranch": "فرع غير معروف",
+  "online": "متصل",
+  "noMessagesYet": "لا توجد رسائل بعد",
+  "startConversation": "ابدأ المحادثة مع أعضاء الفرع",
+  "typeAMessage": "اكتب رسالة...",
+  "failedToSendMessage": "فشل إرسال الرسالة",
+  "branchDiscussion": "مناقشة الفرع",
+  "noChatThreadsYet": "لا توجد مواضيع دردشة بعد",
+  "createFirstThread": "أنشئ أول موضوع نقاش لفرعك",
+  "coachNoThreads": "لم ينشئ المدرب أي مواضيع بعد",
+  "createThread": "إنشاء موضوع",
+  "createNewThread": "إنشاء موضوع جديد",
+  "cancel": "إلغاء",
+  "threadTitleCannotBeEmpty": "لا يمكن أن يكون عنوان الموضوع فارغًا",
+  "threadCreatedSuccess": "تم إنشاء الموضوع بنجاح! 🎉",
+  "selectThread": "اختر موضوعاً",
+  "switch": "تبديل",
+  "noMessages": "لا توجد رسائل",
+  "startTheConversation": "ابدأ المحادثة!",
+  "beFirstToSay": "كن أول من يقول شيئًا أو انتظر مدربك!",
+  "readOnlyMode": "تشاهد هذه الدردشة بوضع القراءة فقط.",
+  "todayAt": "اليوم في {time}",
+  "yesterdayAt": "أمس في {time}",
+  "athletesMeasurements": "قياسات الرياضيين",
+"@athletesMeasurements": {
+  "description": "Title for the Athletes Measurements tool card on the coach home screen in Arabic"
+},
+"coachBranchAssignment": "تخصيص فروع المدربين",
+"@coachBranchAssignment": {
+  "description": "Title for the Coach Branch Assignment tool card on the coach home screen in Arabic"
+},
+"assignCoachesTitle": "تعيين المدربين",
+  "refreshTooltip": "تحديث",
+  "loadingCoaches": "جارٍ تحميل المدربين...",
+  "noCoachesFound": "لم يتم العثور على مدربين",
+  "noCoachesAvailable": "لا يوجد مدربون متاحون للتعيين",
+  "coachAssignmentsTitle": "تعيينات المدربين",
+  "coachesInSystem": "{count, plural, =1 {مدرب واحد في النظام} other {{count} مدربين في النظام}}",
+  "searchCoachesHint": "البحث عن المدربين...",
+  "assignedStat": "معين",
+  "unassignedStat": "غير معين",
+  "multiBranchStat": "فروع متعددة",
+  "noCoachesForQuery": "لم يتم العثور على مدربين لـ \"{query}\"",
+  "failedToLoadCoaches": "فشل تحميل المدربين: {error}",
+  "failedToLoadStats": "فشل تحميل إحصائيات التعيين: {error}",
+  "failedToLoadData": "فشل تحميل البيانات",
+  "branchesAssignedTo": "الفروع المعينة لـ {coachName}",
+  "noBranchesFound": "لم يتم العثور على فروع",
+  "assignButton": "تعيين",
+  "unassignButton": "إلغاء التعيين",
+  "backButton": "رجوع",
+  "failedToLoadBranches": "فشل تحميل الفروع",
+  "errorLoadingBranches": "خطأ في تحميل الفروع",
+  "failedToAssign": "فشل التعيين",
+  "failedToUnassign": "فشل إلغاء التعيين",
+  "branchAssigned": "تم تعيين الفرع",
+  "branchUnassigned": "تم إلغاء تعيين الفرع"
+}
