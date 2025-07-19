@@ -5,7 +5,7 @@ import '../../services/auth_services.dart'; // Add this import
 
 class ApiService {
   // Replace with your actual backend URL
-  static const String baseUrl = 'http://192.168.1.5:8000';
+  static const String baseUrl = 'https://hfabackend-production.up.railway.app';
 
   static const _storage = FlutterSecureStorage();
 
