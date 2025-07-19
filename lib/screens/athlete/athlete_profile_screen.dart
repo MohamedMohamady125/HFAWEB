@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../services/api_service.dart';
-import '../../services/language_service.dart'; // Add this import
+import '../../services/language_service.dart';
 import '../auth/login_screen.dart';
 import '../auth/change_password.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -42,6 +42,11 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+
+  // ✅ ADD: Invite link properties
+  String? _currentInviteLink;
+  bool _isGeneratingInvite = false;
+  List<Map<String, dynamic>> _myInviteLinks = [];
 
   @override
   void initState() {
@@ -112,6 +117,7 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
         _loadProfile(),
         _loadMeasurements(),
         _loadPerformanceLogs(),
+        _loadMyInviteLinks(), // ✅ ADD: Load invite links
       ]);
 
       // Start animations
@@ -277,6 +283,217 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
       'event_name': '',
       'result_time': '',
     };
+  }
+
+  // ✅ ADD: Invite link methods
+  Future<void> _generateInviteLink() async {
+    setState(() => _isGeneratingInvite = true);
+
+    try {
+      final result = await ApiService.createInviteLink();
+
+      if (result['success']) {
+        setState(() {
+          _currentInviteLink = result['invite_url'];
+        });
+
+        // Copy to clipboard
+        await Clipboard.setData(ClipboardData(text: _currentInviteLink!));
+
+        _showSuccess(
+          _languageService.getLocalizedText(
+            'Invite link generated and copied to clipboard!',
+            'تم إنشاء رابط الدعوة ونسخه إلى الحافظة!',
+          ),
+        );
+
+        HapticFeedback.lightImpact();
+
+        // Refresh invite links list
+        await _loadMyInviteLinks();
+      } else {
+        _showError(
+          result['error'] ??
+              _languageService.getLocalizedText(
+                'Failed to generate invite link',
+                'فشل في إنشاء رابط الدعوة',
+              ),
+        );
+      }
+    } catch (e) {
+      _showError(
+        _languageService.getLocalizedText(
+          'Error generating invite link',
+          'خطأ في إنشاء رابط الدعوة',
+        ),
+      );
+    } finally {
+      setState(() => _isGeneratingInvite = false);
+    }
+  }
+
+  Future<void> _loadMyInviteLinks() async {
+    try {
+      final result = await ApiService.getMyInviteLinks();
+
+      if (result['success']) {
+        setState(() {
+          _myInviteLinks = List<Map<String, dynamic>>.from(
+            result['invite_links'],
+          );
+        });
+      }
+    } catch (e) {
+      print('❌ Error loading invite links: $e');
+    }
+  }
+
+  Future<void> _shareInviteLink() async {
+    if (_currentInviteLink != null) {
+      // Copy to clipboard
+      await Clipboard.setData(ClipboardData(text: _currentInviteLink!));
+
+      _showSuccess(
+        _languageService.getLocalizedText(
+          'Invite link copied to clipboard!',
+          'تم نسخ رابط الدعوة إلى الحافظة!',
+        ),
+      );
+
+      HapticFeedback.lightImpact();
+    }
+  }
+
+  void _showInviteLinksDialog() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: Text(
+              _languageService.getLocalizedText(
+                'My Invite Links',
+                'روابط الدعوة الخاصة بي',
+              ),
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              height: 300,
+              child:
+                  _myInviteLinks.isEmpty
+                      ? Center(
+                        child: Text(
+                          _languageService.getLocalizedText(
+                            'No invite links created yet',
+                            'لم يتم إنشاء روابط دعوة بعد',
+                          ),
+                        ),
+                      )
+                      : ListView.builder(
+                        itemCount: _myInviteLinks.length,
+                        itemBuilder: (context, index) {
+                          final link = _myInviteLinks[index];
+                          final isUsed = link['used'] == 1;
+                          final isInvalidated = link['invalidated_at'] != null;
+                          final expiresAt = DateTime.parse(link['expires_at']);
+                          final isExpired = DateTime.now().isAfter(expiresAt);
+
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            child: ListTile(
+                              leading: Icon(
+                                isUsed
+                                    ? Icons.check_circle
+                                    : isInvalidated || isExpired
+                                    ? Icons.cancel
+                                    : Icons.link,
+                                color:
+                                    isUsed
+                                        ? Colors.green
+                                        : isInvalidated || isExpired
+                                        ? Colors.red
+                                        : Colors.blue,
+                              ),
+                              title: Text(
+                                '${link['token'].substring(0, 8)}...',
+                                style: const TextStyle(fontFamily: 'monospace'),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _languageService.getLocalizedText(
+                                      'Created: ${link['created_at']?.toString().split('T')[0] ?? 'Unknown'}',
+                                      'تم الإنشاء: ${link['created_at']?.toString().split('T')[0] ?? 'غير معروف'}',
+                                    ),
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                  Text(
+                                    isUsed
+                                        ? _languageService.getLocalizedText(
+                                          'Used',
+                                          'مستخدم',
+                                        )
+                                        : isInvalidated
+                                        ? _languageService.getLocalizedText(
+                                          'Invalidated',
+                                          'ملغي',
+                                        )
+                                        : isExpired
+                                        ? _languageService.getLocalizedText(
+                                          'Expired',
+                                          'منتهي الصلاحية',
+                                        )
+                                        : _languageService.getLocalizedText(
+                                          'Active',
+                                          'نشط',
+                                        ),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color:
+                                          isUsed
+                                              ? Colors.green
+                                              : isInvalidated || isExpired
+                                              ? Colors.red
+                                              : Colors.blue,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              trailing:
+                                  !isUsed && !isInvalidated && !isExpired
+                                      ? IconButton(
+                                        icon: const Icon(Icons.copy),
+                                        onPressed: () async {
+                                          final fullUrl =
+                                              'https://your-app-domain.com/invite/${link['token']}';
+                                          await Clipboard.setData(
+                                            ClipboardData(text: fullUrl),
+                                          );
+                                          _showSuccess(
+                                            _languageService.getLocalizedText(
+                                              'Link copied!',
+                                              'تم نسخ الرابط!',
+                                            ),
+                                          );
+                                        },
+                                      )
+                                      : null,
+                            ),
+                          );
+                        },
+                      ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(
+                  _languageService.getLocalizedText('Close', 'إغلاق'),
+                ),
+              ),
+            ],
+          ),
+    );
   }
 
   Future<void> _saveMeasurements() async {
@@ -547,6 +764,8 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
                     delegate: SliverChildListDelegate([
                       _buildProfileCard(),
                       const SizedBox(height: 16),
+                      _buildInviteLinkCard(), // ✅ ADD: Invite link card
+                      const SizedBox(height: 16),
                       _buildMeasurementsCard(),
                       const SizedBox(height: 16),
                       _buildPerformanceCard(),
@@ -687,6 +906,158 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
                 ),
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ✅ ADD: Invite Link Card
+  Widget _buildInviteLinkCard() {
+    return Card(
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.purple[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.share, color: Colors.purple[700]),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  _languageService.getLocalizedText(
+                    'Invite Link',
+                    'رابط الدعوة',
+                  ),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _languageService.getLocalizedText(
+                'Generate a secure link to let others login as you. Link expires in 24 hours.',
+                'إنشاء رابط آمن للسماح للآخرين بتسجيل الدخول كما لو كانوا أنت. ينتهي الرابط خلال 24 ساعة.',
+              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton.icon(
+                    onPressed: _isGeneratingInvite ? null : _generateInviteLink,
+                    icon:
+                        _isGeneratingInvite
+                            ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                            : const Icon(
+                              Icons.generating_tokens,
+                              color: Colors.white,
+                            ),
+                    label: Text(
+                      _languageService.getLocalizedText(
+                        'Generate Link',
+                        'إنشاء رابط',
+                      ),
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.purple[600],
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: _showInviteLinksDialog,
+                    icon: const Icon(Icons.history),
+                    label: Text(
+                      _languageService.getLocalizedText('History', 'التاريخ'),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.purple[600],
+                      side: BorderSide(color: Colors.purple[600]!),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            if (_currentInviteLink != null) ...[
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.purple[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.purple[200]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _languageService.getLocalizedText(
+                        'Your Invite Link:',
+                        'رابط الدعوة الخاص بك:',
+                      ),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple[700],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _currentInviteLink!,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontFamily: 'monospace',
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.copy, size: 20),
+                          onPressed: _shareInviteLink,
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.purple[100],
+                            foregroundColor: Colors.purple[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),

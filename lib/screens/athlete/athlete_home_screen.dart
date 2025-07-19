@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../services/api_service.dart';
 
 class AthleteHomeScreen extends StatefulWidget {
@@ -101,7 +102,6 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
     }
   }
 
-  // ✅ FIXED: Enhanced payment status loading with proper debugging
   Future<void> _loadPaymentStatus() async {
     if (userId == null) {
       print('❌ No user ID available for payment');
@@ -165,7 +165,6 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
     return parsed;
   }
 
-  // ✅ FIXED: Enhanced due key generation with debugging
   String _getCurrentDueKey() {
     final now = DateTime.now();
     final dueKey = '${now.year}-${now.month.toString().padLeft(2, '0')}-01';
@@ -173,26 +172,39 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
     return dueKey;
   }
 
-  String _getCurrentMonthName() {
-    return '${_getMonthName(_currentMonth.month)} ${_currentMonth.year}';
+  String _getCurrentMonthName(AppLocalizations l10n) {
+    return '${_getMonthName(_currentMonth.month, l10n)} ${_currentMonth.year}';
   }
 
-  String _getMonthName(int month) {
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    return months[month - 1];
+  String _getMonthName(int month, AppLocalizations l10n) {
+    switch (month) {
+      case 1:
+        return l10n.january;
+      case 2:
+        return l10n.february;
+      case 3:
+        return l10n.march;
+      case 4:
+        return l10n.april;
+      case 5:
+        return l10n.may;
+      case 6:
+        return l10n.june;
+      case 7:
+        return l10n.july;
+      case 8:
+        return l10n.august;
+      case 9:
+        return l10n.september;
+      case 10:
+        return l10n.october;
+      case 11:
+        return l10n.november;
+      case 12:
+        return l10n.december;
+      default:
+        return l10n.unknown;
+    }
   }
 
   Color _getDayColor(DateTime day) {
@@ -246,18 +258,18 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
     }
   }
 
-  String _getPaymentLabel(String? status) {
+  String _getPaymentLabel(String? status, AppLocalizations l10n) {
     switch (status) {
       case 'paid':
-        return 'Paid';
+        return l10n.paid;
       case 'late':
-        return 'Late Payment';
+        return l10n.latePayment;
       case 'pending':
-        return 'Pending';
+        return l10n.pending;
       case 'error':
-        return 'Error';
+        return l10n.error;
       default:
-        return 'Unknown';
+        return l10n.unknown;
     }
   }
 
@@ -278,20 +290,22 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     if (_isInitializing) {
       return Scaffold(
         backgroundColor: const Color(0xFFF5F7FA),
-        body: const Center(
+        body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(
+              const CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1976D2)),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Text(
-                'Loading your dashboard...',
-                style: TextStyle(
+                l10n.loadingDashboard,
+                style: const TextStyle(
                   fontSize: 16,
                   color: Color(0xFF666666),
                   fontWeight: FontWeight.w500,
@@ -308,9 +322,9 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: const Color(0xFF1976D2),
-        title: const Text(
-          'My Dashboard',
-          style: TextStyle(
+        title: Text(
+          l10n.myDashboard,
+          style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,
             fontSize: 20,
@@ -356,9 +370,9 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      '👋 Welcome back!',
-                      style: TextStyle(
+                    Text(
+                      l10n.welcomeBack,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -366,7 +380,11 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Today is ${DateTime.now().day} ${_getMonthName(DateTime.now().month)} ${DateTime.now().year}',
+                      l10n.todayIs(
+                        DateTime.now().day.toString(),
+                        _getMonthName(DateTime.now().month, l10n),
+                        DateTime.now().year.toString(),
+                      ),
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.9),
                         fontSize: 16,
@@ -413,9 +431,9 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Text(
-                          'Payment Status',
-                          style: TextStyle(
+                        Text(
+                          l10n.paymentStatus,
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF333333),
@@ -431,7 +449,7 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              _getCurrentMonthName(),
+                              _getCurrentMonthName(l10n),
                               style: const TextStyle(
                                 fontSize: 16,
                                 color: Color(0xFF666666),
@@ -455,7 +473,7 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    _getPaymentLabel(_paymentStatus),
+                                    _getPaymentLabel(_paymentStatus, l10n),
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w600,
@@ -466,7 +484,7 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
                               ),
                           ],
                         ),
-                        // ✅ ADDED: Debug info (can be removed in production)
+                        // Debug info (can be removed in production)
                         if (_paymentStatus != null)
                           Container(
                             padding: const EdgeInsets.all(8),
@@ -478,14 +496,14 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 Text(
-                                  'User: $userId',
+                                  '${l10n.user}: $userId',
                                   style: const TextStyle(
                                     fontSize: 10,
                                     color: Colors.grey,
                                   ),
                                 ),
                                 Text(
-                                  'Key: ${_getCurrentDueKey()}',
+                                  '${l10n.key}: ${_getCurrentDueKey()}',
                                   style: const TextStyle(
                                     fontSize: 10,
                                     color: Colors.grey,
@@ -536,16 +554,16 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        const Text(
-                          'Monthly Attendance',
-                          style: TextStyle(
+                        Text(
+                          l10n.monthlyAttendance,
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Color(0xFF333333),
                           ),
                         ),
                         const Spacer(),
-                        // ✅ ADDED: Attendance debug info
+                        // Attendance debug info
                         if (athleteId != null)
                           Container(
                             padding: const EdgeInsets.symmetric(
@@ -557,7 +575,7 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              'Athlete ID: $athleteId',
+                              '${l10n.athleteId(athleteId.toString())}',
                               style: const TextStyle(
                                 fontSize: 10,
                                 color: Colors.blue,
@@ -580,7 +598,7 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
                           color: const Color(0xFF1976D2),
                         ),
                         Text(
-                          _getCurrentMonthName(),
+                          _getCurrentMonthName(l10n),
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -604,9 +622,21 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
                       spacing: 16,
                       runSpacing: 8,
                       children: [
-                        _buildLegendItem(const Color(0xFF4CAF50), 'Present'),
-                        _buildLegendItem(const Color(0xFFFF9800), 'No Gear'),
-                        _buildLegendItem(const Color(0xFFF44336), 'Absent'),
+                        _buildLegendItem(
+                          const Color(0xFF4CAF50),
+                          l10n.present,
+                          l10n,
+                        ),
+                        _buildLegendItem(
+                          const Color(0xFFFF9800),
+                          l10n.noGear,
+                          l10n,
+                        ),
+                        _buildLegendItem(
+                          const Color(0xFFF44336),
+                          l10n.absent,
+                          l10n,
+                        ),
                       ],
                     ),
 
@@ -615,7 +645,8 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
                     // Days of week headers
                     Row(
                       children:
-                          ['S', 'M', 'T', 'W', 'T', 'F', 'S']
+                          l10n.daysOfWeekShort
+                              .split(',')
                               .map(
                                 (day) => Expanded(
                                   child: Center(
@@ -644,7 +675,7 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
                         ),
                       )
                     else
-                      _buildCalendarGrid(),
+                      _buildCalendarGrid(l10n),
                   ],
                 ),
               ),
@@ -657,7 +688,7 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
     );
   }
 
-  Widget _buildLegendItem(Color color, String label) {
+  Widget _buildLegendItem(Color color, String label, AppLocalizations l10n) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -679,7 +710,7 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
     );
   }
 
-  Widget _buildCalendarGrid() {
+  Widget _buildCalendarGrid(AppLocalizations l10n) {
     final firstDayOfMonth = DateTime(
       _currentMonth.year,
       _currentMonth.month,
@@ -704,7 +735,7 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
 
       dayWidgets.add(
         GestureDetector(
-          onTap: isCurrentMonth ? () => _showDayDetails(date) : null,
+          onTap: isCurrentMonth ? () => _showDayDetails(date, l10n) : null,
           child: Container(
             margin: const EdgeInsets.all(2),
             decoration: BoxDecoration(
@@ -741,7 +772,7 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
     );
   }
 
-  void _showDayDetails(DateTime date) {
+  void _showDayDetails(DateTime date, AppLocalizations l10n) {
     final dateStr =
         '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
     final attendance = _attendanceData[dateStr];
@@ -754,7 +785,7 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
               borderRadius: BorderRadius.circular(16),
             ),
             title: Text(
-              '${date.day} ${_getMonthName(date.month)} ${date.year}',
+              '${date.day} ${_getMonthName(date.month, l10n)} ${date.year}',
             ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -775,8 +806,8 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
                       const SizedBox(width: 8),
                       Text(
                         attendance['status'] == 'present'
-                            ? 'Present'
-                            : 'Absent',
+                            ? l10n.present
+                            : l10n.absent,
                         style: const TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
@@ -787,19 +818,19 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
                   if (attendance['notes'] != null &&
                       attendance['notes'].toString().isNotEmpty) ...[
                     const SizedBox(height: 12),
-                    const Text(
-                      'Notes:',
-                      style: TextStyle(fontWeight: FontWeight.w600),
+                    Text(
+                      l10n.notes,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 4),
                     Text(attendance['notes'].toString()),
                   ],
                 ] else ...[
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.info_outline, color: Colors.grey),
-                      SizedBox(width: 8),
-                      Text('No training session'),
+                      const Icon(Icons.info_outline, color: Colors.grey),
+                      const SizedBox(width: 8),
+                      Text(l10n.noTrainingSession),
                     ],
                   ),
                 ],
@@ -808,7 +839,7 @@ class _AthleteHomeScreenState extends State<AthleteHomeScreen> {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Close'),
+                child: Text(l10n.close),
               ),
             ],
           ),

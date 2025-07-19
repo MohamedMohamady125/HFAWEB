@@ -6,12 +6,14 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ThreadsScreen extends StatefulWidget {
   const ThreadsScreen({super.key});
+
   @override
   State<ThreadsScreen> createState() => _ThreadsScreenState();
 }
 
 class _ThreadsScreenState extends State<ThreadsScreen>
     with AutomaticKeepAliveClientMixin {
+  // State variables
   bool _isLoading = true;
   List<dynamic> _threads = [];
   List<dynamic> _messages = [];
@@ -25,9 +27,11 @@ class _ThreadsScreenState extends State<ThreadsScreen>
   final ScrollController _scrollController = ScrollController();
   bool _isSending = false;
 
+  // Keep alive to preserve state
   @override
   bool get wantKeepAlive => true;
 
+  // Lifecycle methods
   @override
   void initState() {
     super.initState();
@@ -41,6 +45,7 @@ class _ThreadsScreenState extends State<ThreadsScreen>
     super.dispose();
   }
 
+  // Data loading methods
   Future<void> _initializeAndLoadData() async {
     setState(() {
       _isLoading = true;
@@ -54,24 +59,30 @@ class _ThreadsScreenState extends State<ThreadsScreen>
         _selectThread(_threads[0]['id'], _threads[0]['title']);
       }
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-      });
+      setState(() => _error = e.toString());
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      setState(() => _isLoading = false);
     }
   }
 
   Future<void> _getUserInfo() async {
     try {
       _userType = await ApiService.getUserType();
+      debugPrint('🔍 USER TYPE FROM STORAGE: $_userType');
+
       final result = await ApiService.getUserProfile();
       if (result['success']) {
         final userData = result['data'];
         _userBranchId = userData['branch_id']?.toString();
         _userName = userData['name'] ?? AppLocalizations.of(context)!.you;
+
+        debugPrint('🔍 USER INFO LOADED:');
+        debugPrint('   userType: $_userType');
+        debugPrint('   branchId: $_userBranchId');
+        debugPrint('   userName: $_userName');
+        debugPrint('   userData: $userData');
+      } else {
+        throw Exception(AppLocalizations.of(context)!.failedToGetUserProfile);
       }
     } catch (e) {
       throw Exception(AppLocalizations.of(context)!.failedToGetUserProfile);
@@ -79,22 +90,17 @@ class _ThreadsScreenState extends State<ThreadsScreen>
   }
 
   Future<void> _loadThreads() async {
+    if (_userBranchId == null) {
+      throw Exception(AppLocalizations.of(context)!.userBranchInfoNotAvailable);
+    }
+
     try {
-      if (_userBranchId != null) {
-        final result = await ApiService.getThreadsForBranch(_userBranchId!);
-        if (result['success']) {
-          setState(() {
-            _threads = result['data'] ?? [];
-          });
-        } else {
-          throw Exception(
-            result['error'] ??
-                AppLocalizations.of(context)!.failedToLoadThreads,
-          );
-        }
+      final result = await ApiService.getThreadsForBranch(_userBranchId!);
+      if (result['success']) {
+        setState(() => _threads = result['data'] ?? []);
       } else {
         throw Exception(
-          AppLocalizations.of(context)!.userBranchInfoNotAvailable,
+          result['error'] ?? AppLocalizations.of(context)!.failedToLoadThreads,
         );
       }
     } catch (e) {
@@ -116,15 +122,12 @@ class _ThreadsScreenState extends State<ThreadsScreen>
       final result = await ApiService.getThreadPosts(threadId);
       if (result['success']) {
         final posts = result['data'] as List;
-        final sortedPosts = List<Map<String, dynamic>>.from(posts);
-        sortedPosts.sort((a, b) {
-          final dateA = DateTime.parse(a['created_at']);
-          final dateB = DateTime.parse(b['created_at']);
-          return dateA.compareTo(dateB);
-        });
-        setState(() {
-          _messages = sortedPosts;
-        });
+        final sortedPosts = List<Map<String, dynamic>>.from(posts)..sort(
+          (a, b) => DateTime.parse(
+            a['created_at'],
+          ).compareTo(DateTime.parse(b['created_at'])),
+        );
+        setState(() => _messages = sortedPosts);
         _scrollToBottom();
       } else {
         _showError(
@@ -136,16 +139,18 @@ class _ThreadsScreenState extends State<ThreadsScreen>
     }
   }
 
+  // Message handling methods
   Future<void> _sendMessage() async {
-    if (!_isCoach || _selectedThreadId == null) return;
-    final message = _messageController.text.trim();
-    if (message.isEmpty) return;
+    if (!_isCoach ||
+        _selectedThreadId == null ||
+        _messageController.text.trim().isEmpty)
+      return;
 
     final optimisticMessage = {
       'id': DateTime.now().millisecondsSinceEpoch,
       'user_id': _userName,
       'author': _userName,
-      'message': message,
+      'message': _messageController.text.trim(),
       'created_at': DateTime.now().toIso8601String(),
       'sent': false,
     };
@@ -155,30 +160,26 @@ class _ThreadsScreenState extends State<ThreadsScreen>
       _messageController.clear();
       _isSending = true;
     });
-
     _scrollToBottom();
 
     try {
-      final result = await ApiService.postToThread(_selectedThreadId!, message);
+      // Cast the message to String to match ApiService.postToThread's parameter type
+      final result = await ApiService.postToThread(
+        _selectedThreadId!,
+        optimisticMessage['message'] as String,
+      );
+      setState(() {
+        final index = _messages.indexWhere(
+          (msg) => msg['id'] == optimisticMessage['id'],
+        );
+        if (index != -1) {
+          _messages[index]['sent'] = result['success'];
+        }
+        _isSending = false;
+      });
       if (result['success']) {
-        setState(() {
-          final index = _messages.indexWhere(
-            (msg) => msg['id'] == optimisticMessage['id'],
-          );
-          if (index != -1) {
-            _messages[index]['sent'] = true;
-          }
-        });
         HapticFeedback.lightImpact();
       } else {
-        setState(() {
-          final index = _messages.indexWhere(
-            (msg) => msg['id'] == optimisticMessage['id'],
-          );
-          if (index != -1) {
-            _messages[index]['sent'] = null;
-          }
-        });
         _showError(AppLocalizations.of(context)!.failedToSendMessage);
       }
     } catch (e) {
@@ -189,13 +190,103 @@ class _ThreadsScreenState extends State<ThreadsScreen>
         if (index != -1) {
           _messages[index]['sent'] = null;
         }
+        _isSending = false;
       });
       _showError(AppLocalizations.of(context)!.anErrorOccurred);
-    } finally {
-      setState(() => _isSending = false);
     }
   }
 
+  Future<void> _createThread(String title) async {
+    if (_userBranchId == null) return;
+
+    try {
+      final result = await ApiService.createThread(_userBranchId!, title);
+      if (result['success']) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context)!.threadCreatedSuccessfully,
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.green.shade700,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            margin: const EdgeInsets.all(20),
+          ),
+        );
+        await _loadThreads();
+        if (_threads.isNotEmpty) {
+          _selectThread(_threads.last['id'], _threads.last['title']);
+        }
+      } else {
+        _showError(AppLocalizations.of(context)!.failedToCreateThread);
+      }
+    } catch (e) {
+      _showError(AppLocalizations.of(context)!.anErrorOccurred);
+    }
+  }
+
+  Future<void> _deleteAllHeadCoachMessages() async {
+    if (_userBranchId == null) {
+      _showError('Branch ID not available');
+      return;
+    }
+
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder:
+            (context) => const AlertDialog(
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(color: Color(0xFF007AFF)),
+                  SizedBox(height: 16),
+                  Text('Deleting messages...', style: TextStyle(fontSize: 16)),
+                ],
+              ),
+            ),
+      );
+
+      final result = await ApiService.deleteAllHeadCoachMessages(
+        _userBranchId!,
+      );
+      if (mounted) Navigator.of(context).pop();
+
+      if (result['success']) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                result['message'] ??
+                    'All head coach messages deleted successfully',
+                style: const TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.green.shade700,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              margin: const EdgeInsets.all(20),
+            ),
+          );
+        }
+        if (_selectedThreadId != null) {
+          await _loadMessages(_selectedThreadId!);
+        }
+      } else {
+        _showError(result['error'] ?? 'Failed to delete messages');
+      }
+    } catch (e) {
+      if (mounted && Navigator.canPop(context)) Navigator.of(context).pop();
+      _showError('An error occurred while deleting messages');
+    }
+  }
+
+  // UI helper functions
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -222,7 +313,50 @@ class _ThreadsScreenState extends State<ThreadsScreen>
   }
 
   bool get _isCoach => _userType == 'coach' || _userType == 'head_coach';
+  bool get _isHeadCoach => _userType == 'head_coach';
 
+  String _formatDate(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr).toLocal();
+      final now = DateTime.now().toLocal();
+      final difference = now.difference(date);
+      if (difference.inDays == 0 && now.day == date.day) {
+        return '${AppLocalizations.of(context)!.todayAt} ${_formatMessageTime(dateStr)}';
+      } else if (difference.inDays == 1 && now.day - date.day == 1) {
+        return '${AppLocalizations.of(context)!.yesterdayAt} ${_formatMessageTime(dateStr)}';
+      } else if (difference.inDays < 7) {
+        return '${DateFormat('EEE').format(date)}, ${_formatMessageTime(dateStr)}';
+      } else {
+        return DateFormat('dd/MM/yy').format(date);
+      }
+    } catch (e) {
+      return '';
+    }
+  }
+
+  String _formatMessageTime(String dateStr) {
+    try {
+      final date = DateTime.parse(dateStr).toLocal();
+      return DateFormat('h:mm a').format(date);
+    } catch (e) {
+      return '';
+    }
+  }
+
+  bool _shouldShowDateLabel(int index) {
+    if (index == 0) return true;
+    final currentDate = DateTime.parse(_messages[index]['created_at']);
+    final previousDate = DateTime.parse(_messages[index - 1]['created_at']);
+    return !_isSameDay(currentDate, previousDate);
+  }
+
+  bool _isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
+  }
+
+  // UI builders
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -297,6 +431,232 @@ class _ThreadsScreenState extends State<ThreadsScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    debugPrint('🔍 DELETE BUTTON DEBUG:');
+    debugPrint('   _userType: $_userType');
+    debugPrint('   _isCoach: $_isCoach');
+    debugPrint('   _isHeadCoach: $_isHeadCoach');
+    debugPrint('   _selectedThreadId: $_selectedThreadId');
+    debugPrint('   _userBranchId: $_userBranchId');
+    debugPrint(
+      '   Show HEAD COACH delete button: ${_isHeadCoach && _selectedThreadId != null}',
+    );
+    debugPrint(
+      '   Show TEST delete button: ${_isCoach && _selectedThreadId != null}',
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: const BoxDecoration(
+        color: Color(0xFF007AFF),
+        boxShadow: [
+          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
+        ],
+      ),
+      child: Row(
+        children: [
+          if (_threads.length > 1)
+            GestureDetector(
+              onTap: _showThreadSelector,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.swap_horiz, color: Colors.white, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      AppLocalizations.of(context)!.switchThread,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          Expanded(
+            child: Column(
+              children: [
+                Text(
+                  '💬 ${AppLocalizations.of(context)!.branchChat}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                if (_selectedThreadTitle.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    _selectedThreadTitle,
+                    style: const TextStyle(
+                      color: Color(0xFFE5E7EB),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () async {
+                  HapticFeedback.lightImpact();
+                  await _initializeAndLoadData();
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Icon(
+                    Icons.refresh,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ),
+              if (_isCoach && _selectedThreadId != null) ...[
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () {
+                    debugPrint('🧪 TEST DELETE BUTTON TAPPED');
+                    _testDeleteButton();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.7),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(
+                      Icons.bug_report,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ],
+              if (_isHeadCoach && _selectedThreadId != null) ...[
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: () {
+                    debugPrint('🔄 HEAD COACH DELETE BUTTON TAPPED');
+                    _showDeleteMessagesConfirmation();
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(
+                      Icons.delete_sweep,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              ],
+              if (_isCoach) ...[
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: _showCreateThreadDialog,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(Icons.add, color: Colors.white, size: 20),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBranchInfo() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(Icons.people, color: Color(0xFF3B82F6), size: 16),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              _userBranchId != null
+                  ? AppLocalizations.of(context)!.branchDiscussion
+                  : AppLocalizations.of(context)!.unknownBranch,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+          ),
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                AppLocalizations.of(context)!.online,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF10B981),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -454,177 +814,6 @@ class _ThreadsScreenState extends State<ThreadsScreen>
     );
   }
 
-  Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
-        color: Color(0xFF007AFF),
-        boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
-        ],
-      ),
-      child: Row(
-        children: [
-          if (_threads.length > 1)
-            GestureDetector(
-              onTap: _showThreadSelector,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.swap_horiz, color: Colors.white, size: 16),
-                    const SizedBox(width: 4),
-                    Text(
-                      AppLocalizations.of(context)!.switchThread,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          Expanded(
-            child: Column(
-              children: [
-                Text(
-                  '💬 ${AppLocalizations.of(context)!.branchChat}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                if (_selectedThreadTitle.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    _selectedThreadTitle,
-                    style: const TextStyle(
-                      color: Color(0xFFE5E7EB),
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () async {
-                  HapticFeedback.lightImpact();
-                  await _initializeAndLoadData();
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Icon(
-                    Icons.refresh,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-              ),
-              if (_isCoach) ...[
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: _showCreateThreadDialog,
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Icon(Icons.add, color: Colors.white, size: 20),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBranchInfo() {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: const Color(0xFFEFF6FF),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const Icon(Icons.people, color: Color(0xFF3B82F6), size: 16),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              _userBranchId != null
-                  ? AppLocalizations.of(context)!.branchDiscussion
-                  : AppLocalizations.of(context)!.unknownBranch,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1E293B),
-              ),
-            ),
-          ),
-          Row(
-            children: [
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF10B981),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                AppLocalizations.of(context)!.online,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF10B981),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildEmptyState() {
     return Center(
       child: Column(
@@ -735,19 +924,6 @@ class _ThreadsScreenState extends State<ThreadsScreen>
         ],
       ),
     );
-  }
-
-  bool _shouldShowDateLabel(int index) {
-    if (index == 0) return true;
-    final currentDate = DateTime.parse(_messages[index]['created_at']);
-    final previousDate = DateTime.parse(_messages[index - 1]['created_at']);
-    return !_isSameDay(currentDate, previousDate);
-  }
-
-  bool _isSameDay(DateTime date1, DateTime date2) {
-    return date1.year == date2.year &&
-        date1.month == date2.month &&
-        date1.day == date2.day;
   }
 
   Widget _buildDateLabel(String dateStr) {
@@ -1184,61 +1360,158 @@ class _ThreadsScreenState extends State<ThreadsScreen>
     );
   }
 
-  Future<void> _createThread(String title) async {
-    try {
-      final result = await ApiService.createThread(_userBranchId!, title);
-      if (result['success']) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)!.threadCreatedSuccessfully,
-              style: const TextStyle(color: Colors.white),
+  void _testDeleteButton() {
+    debugPrint('🧪 TESTING DELETE BUTTON - FORCING SHOW');
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('🧪 Test Delete Button'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('User Type: $_userType'),
+                Text('Is Head Coach: $_isHeadCoach'),
+                Text('Is Coach: $_isCoach'),
+                Text('Selected Thread: $_selectedThreadId'),
+                Text('Branch ID: $_userBranchId'),
+                const SizedBox(height: 16),
+                const Text(
+                  'This test button allows any coach to test the delete functionality.',
+                ),
+              ],
             ),
-            backgroundColor: Colors.green.shade700,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            margin: const EdgeInsets.all(20),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Close'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  _showDeleteMessagesConfirmation();
+                },
+                child: const Text('Test Delete Dialog'),
+              ),
+            ],
           ),
-        );
-        await _loadThreads();
-        if (_threads.isNotEmpty) {
-          _selectThread(_threads.last['id'], _threads.last['title']);
-        }
-      } else {
-        _showError(AppLocalizations.of(context)!.failedToCreateThread);
-      }
-    } catch (e) {
-      _showError(AppLocalizations.of(context)!.anErrorOccurred);
-    }
+    );
   }
 
-  String _formatDate(String dateStr) {
-    try {
-      final date = DateTime.parse(dateStr).toLocal();
-      final now = DateTime.now().toLocal();
-      final difference = now.difference(date);
-      if (difference.inDays == 0 && now.day == date.day) {
-        return '${AppLocalizations.of(context)!.todayAt} ${_formatMessageTime(dateStr)}';
-      } else if (difference.inDays == 1 && now.day - date.day == 1) {
-        return '${AppLocalizations.of(context)!.yesterdayAt} ${_formatMessageTime(dateStr)}';
-      } else if (difference.inDays < 7) {
-        return '${DateFormat('EEE').format(date)}, ${_formatMessageTime(dateStr)}';
-      } else {
-        return DateFormat('dd/MM/yy').format(date);
-      }
-    } catch (e) {
-      return '';
-    }
-  }
-
-  String _formatMessageTime(String dateStr) {
-    try {
-      final date = DateTime.parse(dateStr).toLocal();
-      return DateFormat('h:mm a').format(date);
-    } catch (e) {
-      return '';
-    }
+  void _showDeleteMessagesConfirmation() {
+    final l10n = AppLocalizations.of(context)!;
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    Icons.delete_sweep,
+                    color: Colors.red.shade600,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Delete All Messages',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF1E293B),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Are you sure you want to delete ALL messages sent by head coaches in this branch?',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Color(0xFF64748B),
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.warning, color: Colors.red.shade600, size: 20),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'This action cannot be undone!',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFFDC2626),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(
+                  l10n.cancel,
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _deleteAllHeadCoachMessages();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red.shade600,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  elevation: 2,
+                ),
+                child: const Text(
+                  'Delete All',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+    );
   }
 }

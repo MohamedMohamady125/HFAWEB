@@ -213,28 +213,128 @@ class _EnhancedSplashScreenState extends State<EnhancedSplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Scaffold(
       backgroundColor: Colors.blue,
-      body: const Center(
+      body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.pool, size: 100, color: Colors.white),
-            SizedBox(height: 24),
+            const Icon(Icons.pool, size: 100, color: Colors.white),
+            const SizedBox(height: 24),
             Text(
-              'HFA Swim',
-              style: TextStyle(
+              l10n?.appTitle ?? 'HFA Swim',
+              style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
             ),
-            SizedBox(height: 16),
-            CircularProgressIndicator(color: Colors.white),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
+            const CircularProgressIndicator(color: Colors.white),
+            const SizedBox(height: 16),
             Text(
-              'Checking login status...',
-              style: TextStyle(fontSize: 14, color: Colors.white70),
+              l10n?.loadingDashboard ?? 'Checking login status...',
+              style: const TextStyle(fontSize: 14, color: Colors.white70),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ✅ Enhanced Bottom Navigation Bar for iPhone PWA
+class LocalizedBottomNavigationBar extends StatelessWidget {
+  final int currentIndex;
+  final Function(int) onTap;
+
+  const LocalizedBottomNavigationBar({
+    super.key,
+    required this.currentIndex,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    // Get safe area padding for iPhone home indicator
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    return Container(
+      // Add extra height for iPhone PWA and home indicator
+      height: 70 + bottomPadding,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          currentIndex: currentIndex,
+          onTap: onTap,
+          selectedItemColor: const Color(0xFF1976D2),
+          unselectedItemColor: Colors.grey,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          // Increase icon size for better PWA experience
+          iconSize: 26,
+          selectedFontSize: 12,
+          unselectedFontSize: 11,
+          // Add more padding between icon and label
+          landscapeLayout: BottomNavigationBarLandscapeLayout.centered,
+          items: [
+            BottomNavigationBarItem(
+              icon: Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: const Icon(Icons.home),
+              ),
+              activeIcon: Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: const Icon(Icons.home, size: 28),
+              ),
+              label: l10n.home,
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: const Icon(Icons.chat),
+              ),
+              activeIcon: Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: const Icon(Icons.chat, size: 28),
+              ),
+              label: l10n.threads,
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: const Icon(Icons.sports),
+              ),
+              activeIcon: Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: const Icon(Icons.sports, size: 28),
+              ),
+              label: l10n.gear,
+            ),
+            BottomNavigationBarItem(
+              icon: Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: const Icon(Icons.person),
+              ),
+              activeIcon: Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: const Icon(Icons.person, size: 28),
+              ),
+              label: l10n.profile,
             ),
           ],
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Import the generated localization file
 import '../../services/api_service.dart';
 
 class AthleteGearScreen extends StatefulWidget {
@@ -23,33 +24,26 @@ class _AthleteGearScreenState extends State<AthleteGearScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // First, get the user's branch ID
       await _getUserBranchId();
 
       if (_userBranchId != null) {
-        // Then get the gear post for that branch
         final result = await ApiService.getGearForBranch(_userBranchId!);
-        print('🎽 Gear result: $result');
-
         if (result['success']) {
           setState(() {
             _gearPost = result['data'];
             _isLoading = false;
           });
         } else {
-          print('❌ Failed to load gear: ${result['error']}');
           setState(() {
             _isLoading = false;
           });
         }
       } else {
-        print('❌ No branch ID found for user');
         setState(() {
           _isLoading = false;
         });
       }
     } catch (e) {
-      print('❌ Error loading gear: $e');
       setState(() {
         _isLoading = false;
       });
@@ -58,23 +52,21 @@ class _AthleteGearScreenState extends State<AthleteGearScreen> {
 
   Future<void> _getUserBranchId() async {
     try {
-      // Get user profile to find branch ID
       final result = await ApiService.getUserProfile();
       if (result['success']) {
         final userData = result['data'];
         _userBranchId = userData['branch_id']?.toString();
-        print('✅ User branch ID: $_userBranchId');
       }
-    } catch (e) {
-      print('❌ Error getting user branch: $e');
-    }
+    } catch (e) {}
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gear Updates'),
+        title: Text(l10n.gearUpdates),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
@@ -110,16 +102,18 @@ class _AthleteGearScreenState extends State<AthleteGearScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      'Latest Gear Updates',
-                                      style: TextStyle(
+                                    Text(
+                                      l10n.latestGearUpdates,
+                                      style: const TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.blue,
                                       ),
                                     ),
                                     Text(
-                                      'Branch ID: ${_userBranchId ?? 'Unknown'}',
+                                      l10n.branchId(
+                                        _userBranchId ?? l10n.unknown,
+                                      ),
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.grey[600],
@@ -135,12 +129,10 @@ class _AthleteGearScreenState extends State<AthleteGearScreen> {
                       const SizedBox(height: 16),
 
                       // Gear content
-                      if (_gearPost == null ||
-                          _gearPost!['message'] == null) ...[
-                        _buildEmptyState(),
-                      ] else ...[
-                        _buildGearPost(_gearPost!),
-                      ],
+                      if (_gearPost == null || _gearPost!['message'] == null)
+                        _buildEmptyState(l10n)
+                      else
+                        _buildGearPost(_gearPost!, l10n),
                     ],
                   ),
                 ),
@@ -148,7 +140,7 @@ class _AthleteGearScreenState extends State<AthleteGearScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(AppLocalizations l10n) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -157,7 +149,7 @@ class _AthleteGearScreenState extends State<AthleteGearScreen> {
             Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
-              'No Gear Updates',
+              l10n.noGearUpdates,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -166,7 +158,7 @@ class _AthleteGearScreenState extends State<AthleteGearScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Your coach hasn\'t posted any gear updates yet. Check back later!',
+              l10n.noGearUpdatesDesc,
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 14, color: Colors.grey[500]),
             ),
@@ -176,10 +168,9 @@ class _AthleteGearScreenState extends State<AthleteGearScreen> {
     );
   }
 
-  Widget _buildGearPost(Map<String, dynamic> post) {
+  Widget _buildGearPost(Map<String, dynamic> post, AppLocalizations l10n) {
     final createdAt = post['created_at'];
-    final message = post['message'] ?? 'No content available';
-    final userId = post['user_id'];
+    final message = post['message'] ?? l10n.noGearUpdates;
 
     return Card(
       elevation: 4,
@@ -200,16 +191,16 @@ class _AthleteGearScreenState extends State<AthleteGearScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Coach Update',
-                        style: TextStyle(
+                      Text(
+                        l10n.coachUpdate,
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
                       ),
                       if (createdAt != null)
                         Text(
-                          _formatDate(createdAt),
+                          _formatDate(createdAt, l10n),
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey[600],
@@ -228,7 +219,7 @@ class _AthleteGearScreenState extends State<AthleteGearScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    'GEAR',
+                    l10n.gear,
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
@@ -261,26 +252,22 @@ class _AthleteGearScreenState extends State<AthleteGearScreen> {
               children: [
                 TextButton.icon(
                   onPressed: () {
-                    // TODO: Add to favorites or bookmark
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Feature coming soon!')),
+                      SnackBar(content: Text(l10n.comingSoon("Save"))),
                     );
                   },
                   icon: const Icon(Icons.bookmark_outline),
-                  label: const Text('Save'),
+                  label: Text(l10n.save),
                 ),
                 const SizedBox(width: 8),
                 TextButton.icon(
                   onPressed: () {
-                    // TODO: Share gear update
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Share feature coming soon!'),
-                      ),
+                      SnackBar(content: Text(l10n.shareFeatureComingSoon)),
                     );
                   },
                   icon: const Icon(Icons.share_outlined),
-                  label: const Text('Share'),
+                  label: Text(l10n.share),
                 ),
               ],
             ),
@@ -290,18 +277,18 @@ class _AthleteGearScreenState extends State<AthleteGearScreen> {
     );
   }
 
-  String _formatDate(String dateStr) {
+  String _formatDate(String dateStr, AppLocalizations l10n) {
     try {
       final date = DateTime.parse(dateStr);
       final now = DateTime.now();
       final difference = now.difference(date);
 
       if (difference.inDays == 0) {
-        return 'Today';
+        return l10n.today;
       } else if (difference.inDays == 1) {
-        return 'Yesterday';
+        return l10n.yesterday;
       } else if (difference.inDays < 7) {
-        return '${difference.inDays} days ago';
+        return l10n.daysAgo(difference.inDays.toString());
       } else {
         return '${date.day}/${date.month}/${date.year}';
       }

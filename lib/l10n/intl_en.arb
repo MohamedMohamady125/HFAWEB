@@ -15,6 +15,24 @@
   },
   "coachDashboard": "Coach Dashboard",
   "loadingDashboard": "Loading Dashboard...",
+  "myDashboard": "My Dashboard",
+  "welcomeBack": "👋 Welcome back!",
+  "todayIs": "Today is {day} {month} {year}",
+  "@todayIs": {
+    "placeholders": {
+      "day": {},
+      "month": {},
+      "year": {}
+    }
+  },
+  "paymentStatus": "Payment Status",
+  "latePayment": "Late Payment",
+  "user": "User",
+  "key": "Key",
+  "present": "Present",
+  "noGear": "No Gear",
+  "noTrainingSession": "No training session",
+  "daysOfWeekShort": "S,M,T,W,T,F,S",
   "failedToLoadProfile": "Failed to load profile",
   "failedToLoadProfileData": "Failed to load profile data",
   
@@ -64,7 +82,12 @@
   "address": "Address",
   "phone": "Phone",
   "practiceDays": "Practice Days",
-  "branchId": "Branch ID",
+  "branchId": "Branch ID: {branchId}",
+  "@branchId": {
+    "placeholders": {
+      "branchId": {}
+    }
+  },
   "videoUrl": "Video URL",
   "alreadyManaging": "You are already managing {branchName}",
   "@alreadyManaging": {
@@ -334,27 +357,42 @@
   "failedToLoadAthletesGeneral": "Failed to load athletes",
   "athletesManagement": "Athletes Management",
   "athleteId": "ID: {id}",
-  "searchAthletes": "Search athletes...",
+  "@athleteId": {
+    "placeholders": {
+      "id": {}
+    }
+  },
   "noAthletesFound": "No Athletes Found",
-  "noAthletesRegistered": "No athletes are registered in the academy",
   "deleteAthlete": "Delete Athlete",
   "deleteAthleteConfirm": "Are you sure you want to permanently delete {name}?",
+  "@deleteAthleteConfirm": {
+    "placeholders": {
+      "name": {}
+    }
+  },
   "deleteAthleteWarning": "⚠️ This action cannot be undone!",
   "deleteAthleteDetails": "• The athlete will lose access to their account forever\n• All their data will be permanently removed\n• This action is irreversible",
   "delete": "Delete Forever",
-  "cancel": "Cancel",
-  "errorLoadingAthletes": "Error Loading Athletes",
-  "loadingAthletes": "Loading athletes...",
-  "retry": "Retry",
   "deleteAthleteSuccess": "{name} has been permanently deleted",
+  "@deleteAthleteSuccess": {
+    "placeholders": {
+      "name": {}
+    }
+  },
   "deleteAthleteFailed": "Failed to delete athlete: {error}",
+  "@deleteAthleteFailed": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "athletesInAcademy": "{count, plural, =1 {1 athlete in academy} other {{count} athletes in academy}}",
-  "unknown": "Unknown",
+  "@athletesInAcademy": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "invalidId": "Invalid athlete ID",
-  "refresh": "Refresh",
-  "noEmail": "No email",
   "athlete": "Athlete",
-  "monthlyAttendance": "Monthly Attendance",
   "presentWithGear": "Present + Gear",
   "presentWithoutGear": "Present - Gear",
   "absent": "Absent",
@@ -366,9 +404,6 @@
   "missedGearDetails": "Missed Gear Details",
   "perfectNoGearMissed": "Perfect! No gear was missed this month.",
   "notes": "Notes:",
-  "missedGear": "Missed Gear:",
-  "noAttendanceDataForDay": "No attendance data for this day",
-  "close": "Close",
   "daysOfWeek": "Sun,Mon,Tue,Wed,Thu,Fri,Sat",
   "january": "January",
   "february": "February",
@@ -382,91 +417,37 @@
   "october": "October",
   "november": "November",
   "december": "December",
-  "athlete": "Athlete",
-  "monthlyAttendance": "Monthly Attendance",
-  "presentWithGear": "Present + Gear",
-  "presentWithoutGear": "Present - Gear",
-  "absent": "Absent",
-  "monthlyStatistics": "Monthly Statistics",
-  "attendanceRate": "Attendance Rate",
-  "daysPresent": "Days Present",
-  "daysAbsent": "Days Absent",
-  "gearIssues": "Gear Issues",
-  "missedGearDetails": "Missed Gear Details",
-  "perfectNoGearMissed": "Perfect! No gear was missed this month.",
-  "notes": "Notes:",
-  "missedGear": "Missed Gear:",
-  "noAttendanceDataForDay": "No attendance data for this day",
-  "close": "Close",
-  "daysOfWeek": "Sun,Mon,Tue,Wed,Thu,Fri,Sat",
-  "january": "January",
-  "february": "February",
-  "march": "March",
-  "april": "April",
-  "may": "May",
-  "june": "June",
-  "july": "July",
-  "august": "August",
-  "september": "September",
-  "october": "October",
-  "november": "November",
-  "december": "December",
-  "missedGear": "Missed Gear:",
   "performanceLogs": "Performance Logs",
   "athletePerformanceLogs": "Athlete Performance Logs",
-  "athletesInBranch": "{count, plural, =1 {1 athlete in branch} other {{count} athletes in branch}}",
-  "searchAthletes": "Search athletes...",
-  "noAthletesFound": "No Athletes Found",
   "noAthletesRegisteredBranch": "No athletes are registered in this branch",
-  "errorLoadingAthletes": "Error Loading Athletes",
-  "retry": "Retry",
   "viewTimes": "View Times",
   "idField": "ID: {id}",
-  "loadingAthletes": "Loading athletes...",
+  "@idField": {
+    "placeholders": {
+      "id": {}
+    }
+  },
   "loadingPerformanceLogs": "Loading performance logs...",
   "errorLoadingPerformanceLogs": "Error Loading Performance Logs",
   "noPerformanceLogs": "No Performance Logs",
   "noPerformanceRecords": "No performance records found for this athlete",
   "performance": "Performance",
   "performanceRecord": "{count, plural, =1 {1 performance record} other {{count} performance records}}",
-  "unknownAthlete": "Unknown Athlete",
+  "@performanceRecord": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "unknownEvent": "Unknown Event",
   "noTime": "No time",
   "trainingSession": "Training Session",
-  "performanceLogs": "Performance Logs",
-  "athletePerformanceLogs": "Athlete Performance Logs",
-  "athletesInBranch": "{count, plural, =1 {1 athlete in branch} other {{count} athletes in branch}}",
-  "searchAthletes": "Search athletes...",
-  "noAthletesFound": "No Athletes Found",
-  "noAthletesRegisteredBranch": "No athletes are registered in this branch",
-  "errorLoadingAthletes": "Error Loading Athletes",
-  "retry": "Retry",
-  "viewTimes": "View Times",
-  "idField": "ID: {id}",
-  "loadingAthletes": "Loading athletes...",
-  "loadingPerformanceLogs": "Loading performance logs...",
-  "errorLoadingPerformanceLogs": "Error Loading Performance Logs",
-  "noPerformanceLogs": "No Performance Logs",
-  "noPerformanceRecords": "No performance records found for this athlete",
-  "performance": "Performance",
-  "performanceRecord": "{count, plural, =1 {1 performance record} other {{count} performance records}}",
-  "unknownAthlete": "Unknown Athlete",
-  "unknownEvent": "Unknown Event",
-  "noTime": "No time",
-  "trainingSession": "Training Session",
-  "noEmail": "No email",
   "paymentManagement": "Payment Management",
   "loadingPaymentData": "Loading payment data...",
   "errorLoadingPaymentData": "Error Loading Payment Data",
-  "retry": "Retry",
-  "noAthletesFound": "No Athletes Found",
-  "noAthletesRegisteredBranch": "No athletes are registered in this branch",
   "monthlyPaymentStatus": "Monthly Payment Status",
   "paid": "Paid",
-  "pending": "Pending",
   "late": "Late",
   "current": "Current:",
-  "searchAthletes": "Search athletes...",
   "paymentStatusUpdated": "Payment status updated successfully",
   "failedToUpdatePaymentStatus": "Failed to update payment status: {error}",
   "@failedToUpdatePaymentStatus": {
@@ -474,34 +455,11 @@
       "error": {}
     }
   },
-  "athlete": "Athlete",
-  "unknown": "Unknown",
-  "refresh": "Refresh",
-  "error": "Error",
   "athletesMeasurements": "Athletes Measurements",
+  "@athletesMeasurements": {
+    "description": "Title for the Athletes Measurements tool card on the coach home screen"
+  },
   "measurements": "Measurements",
-  "athleteId": "ID: {id}",
-  "@athleteId": {
-    "placeholders": {
-      "id": {}
-    }
-  },
-  "athletesInBranch": "{count, plural, =1 {1 athlete in branch} other {{count} athletes in branch}}",
-  "@athletesInBranch": {
-    "placeholders": {
-      "count": {}
-    }
-  },
-  "loadingAthletes": "Loading athletes...",
-  "errorLoadingAthletes": "Error Loading Athletes",
-  "retry": "Retry",
-  "noAthletesFound": "No Athletes Found",
-  "noAthletesRegisteredBranch": "No athletes are registered in this branch",
-  "searchAthletes": "Search athletes...",
-  "unknown": "Unknown",
-  "noEmail": "No email",
-  "refresh": "Refresh",
-  "error": "Error",
   "loadingMeasurements": "Loading measurements...",
   "errorLoadingMeasurements": "Error Loading Measurements",
   "noMeasurements": "No Measurements",
@@ -522,43 +480,18 @@
   "email": "Email",
   "enterEmail": "Please enter your email",
   "validEmail": "Please enter a valid email",
-  "password": "Password",
   "enterPassword": "Please enter your password",
-  "forgotPassword": "Forgot Password?",
   "signInBtn": "Sign In",
   "dontHaveAccount": "Don't have an account? Sign Up",
-  "loginFailed": "Login failed",
-  "error": "Error",
   "unknownUserType": "Unknown user type: {userType}",
-  "coachLoginTitle": "Coach Login",
-  "teamManagementPortal": "Team Management Portal",
-  "emailAddress": "Email Address",
-  "emailHint": "Enter your email",
-  "pleaseEnterEmail": "Please enter your email",
-  "invalidEmail": "Please enter a valid email",
-  "password": "Password",
-  "passwordHint": "Enter your password",
-  "pleaseEnterPassword": "Please enter your password",
-  "passwordTooShortLogin": "Password must be at least 6 characters",
-  "forgotPassword": "Forgot Password?",
-  "loginAsCoach": "Login as Coach",
+  "@unknownUserType": {
+    "placeholders": {
+      "userType": {}
+    }
+  },
   "accessDeniedCoachOnly": "Access denied. Coaches only.",
-  "loginFailed": "Login failed",
-  "networkError": "Network error. Please try again.",
-  "coachPortal": "Coach Portal",
   "coachPortalDescription": "Exclusive access for coaches to manage athletes, schedules, and attendance.",
-  "branchGroupTitle": "Branch Group",
-  "loadingMessages": "Loading messages...",
-  "error": "Error",
-"retry": "Retry",
-"online": "Online",
-"unknownBranch": "Unknown Branch",
-"noMessagesYet": "No messages yet",
-"startConversation": "Start the conversation",
-"failedToSendMessage": "Failed to send message",
-"anErrorOccurred": "An error occurred",
-"typeAMessage": "Type a message...",
-"branchChat": "Branch Chat",
+  "branchChat": "Branch Chat",
   "branchDiscussion": "Branch Discussion",
   "loadingThreads": "Loading chat threads...",
   "failedToLoadThreads": "Failed to load chat threads",
@@ -566,71 +499,95 @@
   "userBranchInfoNotAvailable": "User branch information not available",
   "failedToLoadMessages": "Failed to load messages",
   "networkErrorLoadingMessages": "Network error loading messages",
-  "failedToSendMessage": "Failed to send message",
-  "anErrorOccurred": "An error occurred",
-  "retry": "Retry",
-  "error": "Error",
   "readOnlyMode": "You are viewing this chat in read-only mode.",
-  "online": "Online",
-  "unknownBranch": "Unknown Branch",
   "noChatThreadsYet": "No Chat Threads Yet",
   "createFirstDiscussion": "Create the first discussion thread for your branch",
   "coachHasNotCreatedThreads": "Your coach hasn't created any threads yet",
   "createThread": "Create Thread",
   "selectAThread": "Select a Thread",
   "tapSwitchToChoose": "Tap \"Switch\" in the header to choose a conversation",
-  "noMessagesYet": "No messages yet",
-  "startConversation": "Start the conversation!",
   "waitForCoach": "Be the first to say something or wait for your coach!",
-  "typeAMessage": "Type your message...",
   "switchThread": "Switch",
   "selectChatThread": "Select Chat Thread",
   "untitledThread": "Untitled Thread",
   "created": "Created",
   "createNewThread": "Create New Thread",
   "threadTitleHint": "e.g., \"Weekly Training Discussion\"",
-  "cancel": "Cancel",
   "threadTitleCannotBeEmpty": "Thread title cannot be empty!",
   "create": "Create",
   "threadCreatedSuccessfully": "Thread created successfully! 🎉",
   "failedToCreateThread": "Failed to create thread",
   "todayAt": "Today at",
   "yesterdayAt": "Yesterday at",
-  "unknown": "Unknown",
   "you": "You",
-  "failedToGetUserProfile": "Failed to get user profile",
-  "athletesMeasurements": "Athletes Measurements",
-"@athletesMeasurements": {
-  "description": "Title for the Athletes Measurements tool card on the coach home screen"
-},
-"coachBranchAssignment": "Coach Branch Assignment",
-"@coachBranchAssignment": {
-  "description": "Title for the Coach Branch Assignment tool card on the coach home screen"
-},
-"assignCoachesTitle": "Assign Coaches",
+  "coachBranchAssignment": "Coach Branch Assignment",
+  "@coachBranchAssignment": {
+    "description": "Title for the Coach Branch Assignment tool card on the coach home screen"
+  },
+  "assignCoachesTitle": "Assign Coaches",
   "refreshTooltip": "Refresh",
   "loadingCoaches": "Loading coaches...",
   "noCoachesFound": "No Coaches Found",
   "noCoachesAvailable": "No coaches are available for assignment",
   "coachAssignmentsTitle": "Coach Assignments",
   "coachesInSystem": "{count, plural, =1 {{count} coach in the system} other {{count} coaches in the system}}",
+  "@coachesInSystem": {
+    "placeholders": {
+      "count": {}
+    }
+  },
   "searchCoachesHint": "Search coaches...",
   "assignedStat": "Assigned",
   "unassignedStat": "Unassigned",
   "multiBranchStat": "Multi-Branch",
   "noCoachesForQuery": "No coaches found for \"{query}\"",
+  "@noCoachesForQuery": {
+    "placeholders": {
+      "query": {}
+    }
+  },
   "failedToLoadCoaches": "Failed to load coaches: {error}",
+  "@failedToLoadCoaches": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "failedToLoadStats": "Failed to load assignment stats: {error}",
+  "@failedToLoadStats": {
+    "placeholders": {
+      "error": {}
+    }
+  },
   "failedToLoadData": "Failed to load data",
   "branchesAssignedTo": "Branches assigned to {coachName}",
+  "@branchesAssignedTo": {
+    "placeholders": {
+      "coachName": {}
+    }
+  },
   "noBranchesFound": "No branches found",
   "assignButton": "Assign",
   "unassignButton": "Unassign",
   "backButton": "Back",
-  "failedToLoadBranches": "Failed to load branches",
   "errorLoadingBranches": "Error loading branches",
   "failedToAssign": "Failed to assign",
   "failedToUnassign": "Failed to unassign",
   "branchAssigned": "Branch assigned",
-  "branchUnassigned": "Branch unassigned"
+  "branchUnassigned": "Branch unassigned",
+  "gearUpdates": "Gear Updates",
+  "latestGearUpdates": "Latest Gear Updates",
+  "noGearUpdates": "No Gear Updates",
+  "noGearUpdatesDesc": "Your coach hasn't posted any gear updates yet. Check back later!",
+  "coachUpdate": "Coach Update",
+  "save": "Save",
+  "share": "Share",
+  "shareFeatureComingSoon": "Share feature coming soon!",
+  "today": "Today",
+  "yesterday": "Yesterday",
+  "daysAgo": "{days} days ago",
+  "@daysAgo": {
+    "placeholders": {
+      "days": {}
+    }
+  }
 }

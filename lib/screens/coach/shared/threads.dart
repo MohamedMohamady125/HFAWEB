@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../services/api_service.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // <-- i18n import
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ThreadsScreen extends StatefulWidget {
   const ThreadsScreen({super.key});
@@ -20,6 +20,7 @@ class _ThreadsScreenState extends State<ThreadsScreen>
   bool _isLoading = true;
   int? _threadId;
   String? _error;
+  bool _isHeadCoach = false;
 
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -52,7 +53,10 @@ class _ThreadsScreenState extends State<ThreadsScreen>
       if (!userResult['success']) throw Exception('Failed to get user profile');
 
       final userData = userResult['data'];
-      setState(() => _user = userData);
+      setState(() {
+        _user = userData;
+        _isHeadCoach = userData['role'] == 'head_coach';
+      });
 
       if (userData['branch_id'] == null) {
         throw Exception('No branch assigned');
@@ -171,6 +175,29 @@ class _ThreadsScreenState extends State<ThreadsScreen>
     }
   }
 
+  Future<void> _deleteAllHeadCoachMessages() async {
+    if (_user?['branch_id'] == null) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final result = await ApiService.deleteAllHeadCoachMessages(
+        _user!['branch_id'].toString(),
+      );
+      if (result['success']) {
+        // Refresh messages
+        await _fetchData();
+        _showSuccess('Messages deleted successfully');
+      } else {
+        _showError(result['error'] ?? 'Failed to delete messages');
+      }
+    } catch (e) {
+      _showError('An error occurred');
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -188,6 +215,17 @@ class _ThreadsScreenState extends State<ThreadsScreen>
       SnackBar(
         content: Text(message),
         backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
+  void _showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
@@ -433,13 +471,52 @@ class _ThreadsScreenState extends State<ThreadsScreen>
       ),
       child: Column(
         children: [
-          Text(
-            '💬 ${AppLocalizations.of(context)!.branchGroupTitle}',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  '💬 ${AppLocalizations.of(context)!.branchGroupTitle}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              if (_isHeadCoach)
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.white, size: 24),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder:
+                          (context) => AlertDialog(
+                            title: const Text('Delete Messages'),
+                            content: const Text(
+                              'Are you sure you want to delete all your messages?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  _deleteAllHeadCoachMessages();
+                                },
+                                child: const Text(
+                                  'Delete',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                            ],
+                          ),
+                    );
+                  },
+                ),
+            ],
           ),
           if (_branchName != null) ...[
             const SizedBox(height: 2),

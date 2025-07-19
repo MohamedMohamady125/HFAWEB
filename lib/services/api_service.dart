@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../services/auth_services.dart'; // Add this import
 
 class ApiService {
   // Replace with your actual backend URL
-  static const String baseUrl =
-      'https://fabulous-learning-production.up.railway.app';
+  static const String baseUrl = 'http://192.168.1.5:8000';
 
   static const _storage = FlutterSecureStorage();
 
@@ -13,19 +13,250 @@ class ApiService {
   static FlutterSecureStorage get storage => _storage;
 
   // Get headers with auth token
+  // Replace your _getHeaders() method in ApiService with this:
+
   static Future<Map<String, String>> _getHeaders() async {
+    // Try to get token from storage
     final token = await _storage.read(key: 'auth_token');
-    return {
+
+    print(
+      '🔍 _getHeaders() - Token from storage: ${token != null ? 'Available (${token.substring(0, 20)}...)' : 'Missing'}',
+    );
+
+    // If no token, check if we should try to get login data from AuthService
+    if (token == null) {
+      print('❌ No token in ApiService storage, checking AuthService...');
+      try {
+        // Import your AuthService and check its data
+        final loginData = await AuthService.getLoginData();
+        print('🔍 AuthService data: $loginData');
+
+        if (loginData['token'] != null) {
+          // Store the token in ApiService storage
+          await _storage.write(key: 'auth_token', value: loginData['token']);
+          await _storage.write(key: 'user_type', value: loginData['user_type']);
+          await _storage.write(key: 'user_id', value: loginData['user_id']);
+
+          print('✅ Synced token from AuthService to ApiService');
+
+          final headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ${loginData['token']}',
+          };
+
+          print('🔍 _getHeaders() - Final headers: ${headers.keys.toList()}');
+          return headers;
+        }
+      } catch (e) {
+        print('❌ Error syncing from AuthService: $e');
+      }
+    }
+
+    final headers = {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
     };
+
+    print('🔍 _getHeaders() - Final headers: ${headers.keys.toList()}');
+    return headers;
   }
 
-  // In your Flutter app, add this to clear storage and login again
-  static Future<void> clearAllData() async {
-    await _storage.deleteAll();
+  // Add these methods to your ApiService class
+
+  // =================== INVITE LINK ENDPOINTS ===================
+
+  // Replace ALL your invite methods in ApiService with these complete versions:
+
+  static Future<Map<String, dynamic>> createInviteLink() async {
+    try {
+      print('🔗 Creating invite link...');
+      final headers = await _getHeaders();
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/users/invite/create'), // ✅ FIXED: Added /users
+        headers: headers,
+      );
+
+      print('🔗 Create invite response: ${response.statusCode}');
+      print('🔗 Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'success': responseData['success'] ?? true,
+          'invite_token': responseData['invite_token'],
+          'invite_url': responseData['invite_url'],
+          'expires_at': responseData['expires_at'],
+        };
+      } else {
+        return {
+          'success': false,
+          'error': 'HTTP ${response.statusCode}: ${response.body}',
+        };
+      }
+    } catch (e) {
+      print('❌ Error creating invite link: $e');
+      return {'success': false, 'error': e.toString()};
+    }
   }
 
+  static Future<Map<String, dynamic>> loginWithInvite(
+    String inviteToken,
+  ) async {
+    try {
+      print('🔗 Logging in with invite token: $inviteToken');
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/users/invite/login'), // ✅ FIXED: Added /users
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'invite_token': inviteToken}),
+      );
+
+      print('🔗 Invite login response: ${response.statusCode}');
+      print('🔗 Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        // Store the auth token
+        if (data['token'] != null) {
+          await _storage.write(key: 'auth_token', value: data['token']);
+
+          // Store user info
+          final userType = data['user']?['role']?.toString() ?? 'athlete';
+          await _storage.write(key: 'user_type', value: userType);
+          await _storage.write(
+            key: 'user_id',
+            value: data['user']?['id']?.toString() ?? '',
+          );
+
+          print('🔗 Stored user_type: $userType');
+        }
+
+        return {
+          'success': data['success'] ?? true,
+          'data': {
+            'access_token': data['token'],
+            'user_type': data['user']?['role'],
+            'user_id': data['user']?['id'],
+            'user': data['user'],
+          },
+          'message': data['message'],
+        };
+      } else {
+        final errorData = jsonDecode(response.body);
+        return {
+          'success': false,
+          'error': errorData['detail'] ?? 'Login with invite failed',
+        };
+      }
+    } catch (e) {
+      print('❌ Error logging in with invite: $e');
+      return {
+        'success': false,
+        'error': 'Network error. Please check your connection.',
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> validateInviteToken(String token) async {
+    try {
+      print('🔗 Validating invite token: $token');
+
+      final response = await http.get(
+        Uri.parse(
+          '$baseUrl/users/invite/validate/$token',
+        ), // ✅ FIXED: Added /users
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      print('🔗 Validate invite response: ${response.statusCode}');
+      print('🔗 Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'success': true,
+          'valid': responseData['valid'],
+          'user_name': responseData['user_name'],
+          'user_email': responseData['user_email'],
+          'user_role': responseData['user_role'],
+          'expires_at': responseData['expires_at'],
+          'message': responseData['message'],
+        };
+      } else {
+        return {
+          'success': false,
+          'error': 'HTTP ${response.statusCode}: ${response.body}',
+        };
+      }
+    } catch (e) {
+      print('❌ Error validating invite token: $e');
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getMyInviteLinks() async {
+    try {
+      print('🔗 Getting my invite links...');
+      final headers = await _getHeaders();
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/invite/my-links'), // ✅ FIXED: Added /users
+        headers: headers,
+      );
+
+      print('🔗 My invite links response: ${response.statusCode}');
+      print('🔗 Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'success': responseData['success'] ?? true,
+          'invite_links': responseData['invite_links'] ?? [],
+        };
+      } else {
+        return {
+          'success': false,
+          'error': 'HTTP ${response.statusCode}: ${response.body}',
+        };
+      }
+    } catch (e) {
+      print('❌ Error getting invite links: $e');
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  static Future<Map<String, dynamic>> invalidateInviteLink(String token) async {
+    try {
+      print('🔗 Invalidating invite link: $token');
+      final headers = await _getHeaders();
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/users/invite/$token'), // ✅ FIXED: Added /users
+        headers: headers,
+      );
+
+      print('🔗 Invalidate invite response: ${response.statusCode}');
+      print('🔗 Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'success': responseData['success'] ?? true,
+          'message': responseData['message'],
+        };
+      } else {
+        return {
+          'success': false,
+          'error': 'HTTP ${response.statusCode}: ${response.body}',
+        };
+      }
+    } catch (e) {
+      print('❌ Error invalidating invite link: $e');
+      return {'success': false, 'error': e.toString()};
+    }
+  }
   // =================== AUTH ENDPOINTS ===================
 
   static Future<Map<String, dynamic>> login(
@@ -759,6 +990,46 @@ class ApiService {
       }
     } catch (e) {
       print('❌ Error marking payment: $e');
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  // Add this method to your ApiService class in the THREADS/CHAT ENDPOINTS section:
+
+  // =================== THREADS/CHAT ENDPOINTS ===================
+
+  static Future<Map<String, dynamic>> deleteAllHeadCoachMessages(
+    String branchId,
+  ) async {
+    try {
+      print('🔄 Deleting all head coach messages for branch: $branchId');
+      final headers = await _getHeaders();
+
+      final response = await http.delete(
+        Uri.parse(
+          '$baseUrl/threads/branch/$branchId/delete-head-coach-messages',
+        ),
+        headers: headers,
+      );
+
+      print('🔄 Delete messages response: ${response.statusCode}');
+      print('🔄 Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return {
+          'success': true,
+          'message': responseData['message'] ?? 'Messages deleted successfully',
+          'deleted_count': responseData['deleted_count'] ?? 0,
+        };
+      } else {
+        return {
+          'success': false,
+          'error': 'HTTP ${response.statusCode}: ${response.body}',
+        };
+      }
+    } catch (e) {
+      print('❌ Error deleting head coach messages: $e');
       return {'success': false, 'error': e.toString()};
     }
   }
