@@ -48355,7 +48355,7 @@ A.avJ.prototype={
 $0(){var s=0,r=A.y(t.H),q=this,p
 var $async$$0=A.u(function(a,b){if(a===1)return A.v(b,r)
 while(true)switch(s){case 0:s=2
-return A.m(A.qo(new A.lZ("https://your-app-domain.com/invite/"+A.h(J.j(q.b,"token")))),$async$$0)
+return A.m(A.qo(new A.lZ("https://ornate-banoffee-460953.netlify.app/invite/"+A.h(J.j(q.b,"token")))),$async$$0)
 case 2:p=q.a
 p.oM(p.f.a?"\u062a\u0645 \u0646\u0633\u062e \u0627\u0644\u0631\u0627\u0628\u0637!":"Link copied!")
 return A.w(null,r)}})
