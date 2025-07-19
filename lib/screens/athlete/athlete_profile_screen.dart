@@ -286,6 +286,8 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
   }
 
   // ✅ ADD: Invite link methods
+  // Replace your _generateInviteLink method with this:
+
   Future<void> _generateInviteLink() async {
     setState(() => _isGeneratingInvite = true);
 
@@ -296,18 +298,6 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
         setState(() {
           _currentInviteLink = result['invite_url'];
         });
-
-        // Copy to clipboard
-        await Clipboard.setData(ClipboardData(text: _currentInviteLink!));
-
-        _showSuccess(
-          _languageService.getLocalizedText(
-            'Invite link generated and copied to clipboard!',
-            'تم إنشاء رابط الدعوة ونسخه إلى الحافظة!',
-          ),
-        );
-
-        HapticFeedback.lightImpact();
 
         // Refresh invite links list
         await _loadMyInviteLinks();
