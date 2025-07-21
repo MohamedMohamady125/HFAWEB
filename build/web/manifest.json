@@ -1,0 +1,29 @@
+{
+    "name": "HFA Swim Academy",
+    "short_name": "HFA",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#007AFF",
+    "theme_color": "#007AFF",
+    "description": "Complete swimming academy management app for athletes & coaches",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/Icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable any"
+        },
+        {
+            "src": "icons/Icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable any"
+        }
+    ],
+    "categories": ["sports", "fitness"],
+    "scope": "/",
+    "lang": "en",
+    "dir": "auto"
+}
