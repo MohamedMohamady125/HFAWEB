@@ -2,13 +2,10 @@
 <html>
 <head>
   <base href="/">
-
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="HFA Swimming Academy - Team Management App">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="HFA">
@@ -18,26 +15,18 @@
   <title>HFA Swimming Academy</title>
 </head>
 <body>
-
-  <!-- Flutter app -->
   <script src="flutter_bootstrap.js" async></script>
-
-  <!-- Enhanced Push Notification Script for PWA -->
+  
   <script>
     const vapidPublicKey = "BBIYwgfm5sPmvsYDiPlvWinMhKczMYSRdeao5b4uS66jULfZTP4IaEGNrrpPw8TOR77NwIkyh7btd9CSXXBkKVE";
 
-    // ✅ Function to get auth token from localStorage
     function getAuthToken() {
       console.log('🔍 Looking for auth token...');
-      
-      // ✅ First try Flutter backup token (plain text)
       const flutterBackupToken = localStorage.getItem('flutter.auth_token_backup');
       if (flutterBackupToken) {
         console.log('✅ Found Flutter backup token');
         return flutterBackupToken;
       }
-      
-      // Try standard token keys
       const possibleKeys = ['auth_token', 'token', 'jwt_token', 'access_token', 'authToken'];
       for (const key of possibleKeys) {
         const token = localStorage.getItem(key);
@@ -46,79 +35,56 @@
           return token;
         }
       }
-      
-      // If no token found, try to extract from login data
-      const loginData = localStorage.getItem('login_data');
-      if (loginData) {
-        try {
-          const parsed = JSON.parse(loginData);
-          const token = parsed.token || parsed.access_token || parsed.authToken;
-          if (token) {
-            console.log('✅ Found token in login_data');
-            return token;
-          }
-        } catch (e) {
-          console.error('Error parsing login data:', e);
-        }
-      }
-      
-      console.log('❌ No auth token found anywhere');
-      console.log('💡 Available keys:', Object.keys(localStorage));
+      console.log('❌ No auth token found');
       return null;
     }
 
+    // ✅ FIXED: Properly attach to window
     window.subscribeToWebPush = async function() {
+      console.log('🔔 subscribeToWebPush called from Flutter!');
+      
       if (!('serviceWorker' in navigator)) {
         alert("Service workers not supported");
-        return;
+        return false;
       }
 
-      // ✅ Check for notification support
       if (!('Notification' in window)) {
         alert("This browser does not support notifications");
-        return;
+        return false;
       }
 
-      // ✅ Check for auth token
       const authToken = getAuthToken();
       if (!authToken) {
         alert("Please log in first to enable notifications");
-        return;
+        return false;
       }
 
       try {
-        // Register service worker
-        const registration = await navigator.serviceWorker.register('/web-push-sw.js', {
-          scope: '/'
-        });
+        const registration = await navigator.serviceWorker.register('/web-push-sw.js');
         console.log('✅ Service Worker registered:', registration);
 
-        // Request notification permission
         let permission = Notification.permission;
         if (permission === 'default') {
           permission = await Notification.requestPermission();
         }
 
         if (permission !== 'granted') {
-          alert("❌ Notification permission denied. Please enable notifications in your browser settings.");
-          return;
+          alert("❌ Notification permission denied");
+          return false;
         }
 
-        console.log('✅ Notification permission granted');
-
-        // Wait for service worker to be ready
         await navigator.serviceWorker.ready;
 
-        // Subscribe to push notifications
         const subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
         });
 
-        console.log('📦 Push subscription created:', JSON.stringify(subscription, null, 2));
+        console.log('📦 Push subscription created');
 
-        // ✅ Send subscription to backend - FIXED: Added 'const response ='
-const response = await fetch('https://hfabackend-production-36df.up.railway.app/notifications/webpush/subscribe', {          method: 'POST',
+        // ✅ FIXED: Clean fetch call
+        const response = await fetch('https://hfabackend-production-36df.up.railway.app/notifications/webpush/subscribe', {
+          method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${authToken}`
@@ -127,27 +93,23 @@ const response = await fetch('https://hfabackend-production-36df.up.railway.app/
         });
 
         if (response.ok) {
-          // Show success notification
-          showLocalNotification('🎉 Notifications Enabled!', 'You will now receive push notifications from HFA');
-          
-          // Update button
-          if (button) {
-          }
-          
           console.log('✅ Push subscription successful');
+          showLocalNotification('🎉 Notifications Enabled!', 'You will now receive push notifications from HFA');
+          return true;
         } else {
           const errorText = await response.text();
           console.error('Subscription failed:', response.status, errorText);
-          alert(`Subscription failed: ${response.status} - ${errorText}`);
+          alert(`Subscription failed: ${response.status}`);
+          return false;
         }
 
       } catch (error) {
         console.error('Push subscription error:', error);
         alert(`Error: ${error.message}`);
+        return false;
       }
-    }
+    };
 
-    // ✅ Show local notification for testing
     function showLocalNotification(title, body) {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification(title, {
@@ -162,88 +124,21 @@ const response = await fetch('https://hfabackend-production-36df.up.railway.app/
 
     function urlBase64ToUint8Array(base64String) {
       const padding = '='.repeat((4 - base64String.length % 4) % 4);
-      const base64 = (base64String + padding)
-        .replace(/-/g, '+')
-        .replace(/_/g, '/');
-
+      const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
       const rawData = atob(base64);
       return Uint8Array.from([...rawData].map(char => char.charCodeAt(0)));
     }
 
-    // ✅ Enhanced PWA features
     window.addEventListener('load', () => {
-      const authToken = getAuthToken();
-      if (authToken) {
-        console.log('User is logged in, notification features available');
-        
-        // Auto-register service worker even if not subscribing to push
-        if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.register('/web-push-sw.js')
-            .then(reg => console.log('🔧 Service Worker auto-registered'))
-            .catch(err => console.log('❌ Service Worker registration failed:', err));
-        }
-      }
-
-      // ✅ Check if already subscribed and update button
-    });
-
-              console.log('✅ Already subscribed to push notifications');
-            }
-          }
-        }
-      } catch (error) {
-        console.log('Could not check existing subscription:', error);
-      }
-    }
-
-    // ✅ Handle install prompt for PWA
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      console.log('💾 PWA install prompt available');
-      e.preventDefault();
-      deferredPrompt = e;
+      console.log('🔧 Page loaded, notification function ready');
+      console.log('🔧 subscribeToWebPush type:', typeof window.subscribeToWebPush);
       
-      // Show custom install button (optional)
-      showInstallButton();
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/web-push-sw.js')
+          .then(reg => console.log('🔧 Service Worker auto-registered'))
+          .catch(err => console.log('❌ Service Worker registration failed:', err));
+      }
     });
-
-    function showInstallButton() {
-      // Create install button if it doesn't exist
-      if (!document.getElementById('install-button')) {
-        const installButton = document.createElement('button');
-        installButton.id = 'install-button';
-        installButton.textContent = '📱 Install App';
-        installButton.style.cssText = `
-          position: fixed;
-          bottom: 70px;
-          right: 10px;
-          z-index: 9999;
-          background: #2196F3;
-          color: white;
-          border: none;
-          padding: 10px 15px;
-          border-radius: 5px;
-          cursor: pointer;
-        `;
-        installButton.onclick = installPWA;
-        document.body.appendChild(installButton);
-      }
-    }
-
-    async function installPWA() {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`PWA install ${outcome}`);
-        deferredPrompt = null;
-        
-        // Hide install button
-        const installButton = document.getElementById('install-button');
-        if (installButton) {
-          installButton.remove();
-        }
-      }
-    }
   </script>
 </body>
 </html>
