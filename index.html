@@ -22,11 +22,6 @@
   <!-- Flutter app -->
   <script src="flutter_bootstrap.js" async></script>
 
-  <!-- Web Push Button -->
-  <button onclick="subscribeToWebPush()" style="position: fixed; bottom: 10px; right: 10px; z-index: 9999;">
-    🔔 Enable Notifications
-  </button>
-
   <!-- Enhanced Push Notification Script for PWA -->
   <script>
     const vapidPublicKey = "BBIYwgfm5sPmvsYDiPlvWinMhKczMYSRdeao5b4uS66jULfZTP4IaEGNrrpPw8TOR77NwIkyh7btd9CSXXBkKVE";
@@ -137,11 +132,7 @@
           showLocalNotification('🎉 Notifications Enabled!', 'You will now receive push notifications from HFA');
           
           // Update button
-          const button = document.querySelector('button[onclick="subscribeToWebPush()"]');
           if (button) {
-            button.textContent = '✅ Notifications Enabled';
-            button.disabled = true;
-            button.style.background = '#4CAF50';
           }
           
           console.log('✅ Push subscription successful');
@@ -195,22 +186,8 @@
       }
 
       // ✅ Check if already subscribed and update button
-      checkExistingSubscription();
     });
 
-    async function checkExistingSubscription() {
-      try {
-        if ('serviceWorker' in navigator && 'PushManager' in window) {
-          const registration = await navigator.serviceWorker.getRegistration();
-          if (registration) {
-            const subscription = await registration.pushManager.getSubscription();
-            if (subscription) {
-              const button = document.querySelector('button[onclick="subscribeToWebPush()"]');
-              if (button) {
-                button.textContent = '✅ Notifications Enabled';
-                button.disabled = true;
-                button.style.background = '#4CAF50';
-              }
               console.log('✅ Already subscribed to push notifications');
             }
           }
