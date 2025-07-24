@@ -123,7 +123,7 @@
         console.log('📦 Push subscription created:', JSON.stringify(subscription, null, 2));
 
         // ✅ Send subscription to backend
-        const response = await fetch('http://192.168.1.5:8000/notifications/webpush/subscribe', {
+        await fetch('https://backendtest-xlio.onrender.com/notifications/webpush/subscribe', {
           method: 'POST',
           headers: { 
             'Content-Type': 'application/json',
