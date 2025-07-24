@@ -67,7 +67,7 @@
       return null;
     }
 
-    async function subscribeToWebPush() {
+    window.subscribeToWebPush = async function() {
       if (!('serviceWorker' in navigator)) {
         alert("Service workers not supported");
         return;
