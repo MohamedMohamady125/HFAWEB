@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:js' as js; // ✅ ADD THIS IMPORT
+import 'dart:async'; // ✅ ADD THIS IMPORT
 import '../../services/api_service.dart';
 import '../../services/language_service.dart';
 import '../auth/login_screen.dart';
@@ -22,6 +24,10 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
   // Remove local _isArabic - use global service instead
   final LanguageService _languageService = LanguageService();
 
+  // ✅ ADD: Notification properties
+  bool _notificationsEnabled = false;
+  bool _isEnablingNotifications = false;
+
   // Measurements
   Map<String, String> _measurements = {
     'height': '',
@@ -43,7 +49,7 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
 
-  // ✅ ADD: Invite link properties
+  // Invite link properties
   String? _currentInviteLink;
   bool _isGeneratingInvite = false;
   List<Map<String, dynamic>> _myInviteLinks = [];
@@ -54,6 +60,7 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
     _initializeAnimations();
     _initializeLanguage();
     _loadAllData();
+    _checkNotificationStatus(); // ✅ ADD THIS
 
     // Listen to language changes
     _languageService.addListener(_onLanguageChanged);
@@ -97,6 +104,133 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
     ).animate(CurvedAnimation(parent: _slideController, curve: Curves.easeOut));
   }
 
+  // ✅ ADD: Notification methods
+  void _checkNotificationStatus() {
+    try {
+      // Check if already subscribed
+      js.context.callMethod('eval', [
+        '''
+        (async function() {
+          if ('serviceWorker' in navigator && 'PushManager' in window) {
+            try {
+              const registration = await navigator.serviceWorker.getRegistration();
+              if (registration) {
+                const subscription = await registration.pushManager.getSubscription();
+                window.flutterNotificationStatus = subscription ? true : false;
+              } else {
+                window.flutterNotificationStatus = false;
+              }
+            } catch (e) {
+              window.flutterNotificationStatus = false;
+            }
+          } else {
+            window.flutterNotificationStatus = false;
+          }
+        })();
+      ''',
+      ]);
+
+      // Check result after a delay
+      Future.delayed(Duration(milliseconds: 500), () {
+        try {
+          final status = js.context['flutterNotificationStatus'];
+          if (mounted) {
+            setState(() {
+              _notificationsEnabled = status == true;
+            });
+          }
+        } catch (e) {
+          print('Error checking notification status: $e');
+        }
+      });
+    } catch (e) {
+      print('Error in _checkNotificationStatus: $e');
+    }
+  }
+
+  Future<void> _enableNotifications() async {
+    setState(() {
+      _isEnablingNotifications = true;
+    });
+
+    try {
+      // Call JavaScript function to enable notifications
+      final result = await _callJavaScriptFunction('subscribeToWebPush');
+
+      if (result == true) {
+        setState(() {
+          _notificationsEnabled = true;
+        });
+
+        _showSuccess(
+          _languageService.getLocalizedText(
+            '🎉 Notifications enabled successfully!',
+            '🎉 تم تفعيل الإشعارات بنجاح!',
+          ),
+        );
+
+        HapticFeedback.lightImpact();
+      } else {
+        throw Exception('Failed to enable notifications');
+      }
+    } catch (e) {
+      _showError(
+        _languageService.getLocalizedText(
+          'Failed to enable notifications: ${e.toString()}',
+          'فشل في تفعيل الإشعارات: ${e.toString()}',
+        ),
+      );
+    } finally {
+      setState(() {
+        _isEnablingNotifications = false;
+      });
+    }
+  }
+
+  Future<dynamic> _callJavaScriptFunction(String functionName) async {
+    final completer = Completer<dynamic>();
+
+    try {
+      // Create a unique callback name
+      final callbackName =
+          'flutter_callback_${DateTime.now().millisecondsSinceEpoch}';
+
+      // Set up callback
+      js.context[callbackName] = (result) {
+        if (!completer.isCompleted) {
+          completer.complete(result);
+        }
+      };
+
+      // Call the function with callback
+      js.context.callMethod('eval', [
+        '''
+        (async function() {
+          try {
+            await $functionName();
+            window.$callbackName(true);
+          } catch (error) {
+            console.error('Error in $functionName:', error);
+            window.$callbackName(false);
+          }
+        })();
+      ''',
+      ]);
+
+      // Timeout after 10 seconds
+      Timer(Duration(seconds: 10), () {
+        if (!completer.isCompleted) {
+          completer.complete(false);
+        }
+      });
+
+      return await completer.future;
+    } catch (e) {
+      print('Error calling JavaScript function: $e');
+      return false;
+    }
+  }
+
   // Toggle language using global service
   Future<void> _toggleLanguage() async {
     await _languageService.toggleLanguage();
@@ -117,7 +251,7 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
         _loadProfile(),
         _loadMeasurements(),
         _loadPerformanceLogs(),
-        _loadMyInviteLinks(), // ✅ ADD: Load invite links
+        _loadMyInviteLinks(),
       ]);
 
       // Start animations
@@ -284,9 +418,6 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
       'result_time': '',
     };
   }
-
-  // ✅ ADD: Invite link methods
-  // Replace your _generateInviteLink method with this:
 
   Future<void> _generateInviteLink() async {
     setState(() => _isGeneratingInvite = true);
@@ -713,6 +844,158 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
         false;
   }
 
+  // ✅ ADD: Notification Card Widget
+  Widget _buildNotificationCard() {
+    return Card(
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color:
+                        _notificationsEnabled
+                            ? Colors.green[100]
+                            : Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    _notificationsEnabled
+                        ? Icons.notifications_active
+                        : Icons.notifications_off,
+                    color:
+                        _notificationsEnabled
+                            ? Colors.green[700]
+                            : Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _languageService.getLocalizedText(
+                          'Push Notifications',
+                          'الإشعارات الفورية',
+                        ),
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      Text(
+                        _notificationsEnabled
+                            ? _languageService.getLocalizedText(
+                              'You will receive notifications',
+                              'ستحصل على الإشعارات',
+                            )
+                            : _languageService.getLocalizedText(
+                              'Enable to get notified',
+                              'فعّل للحصول على الإشعارات',
+                            ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              _languageService.getLocalizedText(
+                'Get notified when coaches post messages or update gear. Notifications work even when the app is closed.',
+                'احصل على إشعارات عندما ينشر المدربون رسائل أو يحدثون المعدات. الإشعارات تعمل حتى عند إغلاق التطبيق.',
+              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 16),
+            if (!_notificationsEnabled)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed:
+                      _isEnablingNotifications ? null : _enableNotifications,
+                  icon:
+                      _isEnablingNotifications
+                          ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                          : const Icon(
+                            Icons.notifications_active,
+                            color: Colors.white,
+                          ),
+                  label: Text(
+                    _isEnablingNotifications
+                        ? _languageService.getLocalizedText(
+                          'Enabling...',
+                          'جاري التفعيل...',
+                        )
+                        : _languageService.getLocalizedText(
+                          'Enable Notifications',
+                          'تفعيل الإشعارات',
+                        ),
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue[600],
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              )
+            else
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green[50],
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green[200]!),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle,
+                      color: Colors.green[600],
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _languageService.getLocalizedText(
+                          'Notifications are enabled! You\'ll get alerts for new messages and gear updates.',
+                          'الإشعارات مفعلة! ستحصل على تنبيهات للرسائل الجديدة وتحديثات المعدات.',
+                        ),
+                        style: TextStyle(
+                          color: Colors.green[700],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -754,7 +1037,9 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
                     delegate: SliverChildListDelegate([
                       _buildProfileCard(),
                       const SizedBox(height: 16),
-                      _buildInviteLinkCard(), // ✅ ADD: Invite link card
+                      _buildNotificationCard(), // ✅ ADD: Notification card
+                      const SizedBox(height: 16),
+                      _buildInviteLinkCard(),
                       const SizedBox(height: 16),
                       _buildMeasurementsCard(),
                       const SizedBox(height: 16),
@@ -902,7 +1187,6 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
     );
   }
 
-  // ✅ ADD: Invite Link Card
   Widget _buildInviteLinkCard() {
     return Card(
       elevation: 8,
