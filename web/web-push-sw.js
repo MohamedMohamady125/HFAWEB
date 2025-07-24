@@ -11,7 +11,8 @@ self.addEventListener('push', function(event) {
         icon: '/icons/Icon-192.png',
         badge: '/icons/Icon-96.png',
         image: '/icons/Icon-512.png',
-        // sound: Uses system notification sound automatically
+        // ✅ ADD: Custom HFA sound for ALL notifications
+        sound: '/sounds/hfasound.mp3',
         vibrate: [200, 100, 200], // Vibration pattern
         tag: 'hfa-notification',
         renotify: true,
@@ -43,13 +44,22 @@ self.addEventListener('push', function(event) {
             // Update notification with actual data
             notificationData.body = pushData;
             
-            // Customize based on message type
+            // Customize based on message type, but keep same HFA sound
             if (pushData.includes('💬')) {
                 notificationData.title = 'New Thread Message';
                 notificationData.tag = 'thread-message';
+                // ✅ Same HFA sound for thread messages
+                notificationData.sound = '/sounds/hfasound.mp3';
             } else if (pushData.includes('🎽')) {
                 notificationData.title = 'Gear Update';
                 notificationData.tag = 'gear-update';
+                // ✅ Same HFA sound for gear updates
+                notificationData.sound = '/sounds/hfasound.mp3';
+            } else {
+                notificationData.title = 'HFA Notification';
+                notificationData.tag = 'general';
+                // ✅ Same HFA sound for general notifications
+                notificationData.sound = '/sounds/hfasound.mp3';
             }
             
         } catch (e) {
@@ -57,12 +67,11 @@ self.addEventListener('push', function(event) {
         }
     }
 
-    // Show the notification
+    // Show the notification with custom HFA sound
     event.waitUntil(
         self.registration.showNotification(notificationData.title, notificationData)
             .then(() => {
-                console.log('✅ Notification displayed with system sound');
-                // System sound plays automatically - no custom sound needed
+                console.log('✅ Notification displayed with custom HFA sound');
             })
             .catch(err => {
                 console.error('❌ Error showing notification:', err);
