@@ -17,48 +17,14 @@ class ApiService {
   // Replace your _getHeaders() method in ApiService with this:
 
   static Future<Map<String, String>> _getHeaders() async {
-    // Try to get token from storage
+    // Just get token from storage - no syncing!
     final token = await _storage.read(key: 'auth_token');
-
-    print(
-      '🔍 _getHeaders() - Token from storage: ${token != null ? 'Available (${token.substring(0, 20)}...)' : 'Missing'}',
-    );
-
-    // If no token, check if we should try to get login data from AuthService
-    if (token == null) {
-      print('❌ No token in ApiService storage, checking AuthService...');
-      try {
-        // Import your AuthService and check its data
-        final loginData = await AuthService.getLoginData();
-        print('🔍 AuthService data: $loginData');
-
-        if (loginData['token'] != null) {
-          // Store the token in ApiService storage
-          await _storage.write(key: 'auth_token', value: loginData['token']);
-          await _storage.write(key: 'user_type', value: loginData['user_type']);
-          await _storage.write(key: 'user_id', value: loginData['user_id']);
-
-          print('✅ Synced token from AuthService to ApiService');
-
-          final headers = {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ${loginData['token']}',
-          };
-
-          print('🔍 _getHeaders() - Final headers: ${headers.keys.toList()}');
-          return headers;
-        }
-      } catch (e) {
-        print('❌ Error syncing from AuthService: $e');
-      }
-    }
 
     final headers = {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
     };
 
-    print('🔍 _getHeaders() - Final headers: ${headers.keys.toList()}');
     return headers;
   }
 
