@@ -1596,34 +1596,135 @@ class ApiService {
 
   // =================== SWITCH BRANCH ENDPOINT ===================
 
+  // =================== BULLETPROOF BRANCH SWITCHING ===================
+
   static Future<Map<String, dynamic>> switchBranch(int branchId) async {
     try {
+      print('🔄 BULLETPROOF: Switching to branch $branchId');
       final headers = await _getHeaders();
+
+      // Get user type for logging and validation
+      final userType = await getUserType();
+      final userId = await getUserId();
+      print('🔄 User: $userType (ID: $userId)');
+
+      // ✅ STEP 1: Make the API call
       final response = await http.post(
-        Uri.parse(
-          '$baseUrl/coach/set-active-branch/$branchId',
-        ), // ✅ CORRECT URL
+        Uri.parse('$baseUrl/coach/set-active-branch/$branchId'),
         headers: headers,
       );
 
-      print('🔄 Switch branch response: ${response.statusCode}');
+      print('🔄 API Response: ${response.statusCode}');
       print('🔄 Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
+
+        // ✅ STEP 2: Check if API confirms success
+        final apiSuccess = responseData['success'] ?? false;
+        final apiVerified = responseData['verified'] ?? false;
+
+        if (!apiSuccess || !apiVerified) {
+          return {
+            'success': false,
+            'error': 'API returned success but verification failed',
+            'api_response': responseData,
+          };
+        }
+
+        print(
+          '✅ API confirmed switch successful, waiting before verification...',
+        );
+
+        // ✅ STEP 3: Wait and refresh profile to double-check
+        await Future.delayed(Duration(milliseconds: 1000)); // 1 second wait
+
+        final profileResult = await getUserProfile();
+
+        if (profileResult['success']) {
+          final updatedUser = profileResult['data'];
+          final actualBranchId = updatedUser['branch_id'];
+
+          print(
+            '🔄 Profile verification: Expected=$branchId, Actual=$actualBranchId',
+          );
+
+          // ✅ STEP 4: Triple verification
+          if (actualBranchId == branchId) {
+            print('✅ BULLETPROOF SUCCESS: Branch switch fully verified!');
+            return {
+              'success': true,
+              'message':
+                  responseData['message'] ?? 'Branch switched successfully',
+              'new_branch_id': branchId,
+              'new_branch_name': responseData['new_active_branch_name'],
+              'previous_branch_id': responseData['previous_branch_id'],
+              'verified': true,
+              'user_role': userType,
+              'user_data': updatedUser,
+              'api_confirmed': apiSuccess,
+              'profile_confirmed': true,
+            };
+          } else {
+            // Profile shows different branch - this is the inconsistency!
+            print(
+              '❌ INCONSISTENCY DETECTED: API says $branchId but profile shows $actualBranchId',
+            );
+            return {
+              'success': false,
+              'error':
+                  'INCONSISTENCY: API succeeded but profile shows branch $actualBranchId instead of $branchId',
+              'expected_branch': branchId,
+              'actual_branch': actualBranchId,
+              'api_response': responseData,
+              'profile_data': updatedUser,
+              'inconsistency_detected': true,
+            };
+          }
+        } else {
+          print('❌ Profile refresh failed after successful API call');
+          return {
+            'success': false,
+            'error':
+                'Branch switch API succeeded but unable to verify with profile refresh',
+            'api_response': responseData,
+            'profile_error': profileResult['error'],
+          };
+        }
+      } else if (response.statusCode == 403) {
+        // Permission denied - coach not assigned to branch
+        final errorData = jsonDecode(response.body);
         return {
-          'success': true,
-          'message': responseData['message'] ?? 'Branch switched successfully',
+          'success': false,
+          'error':
+              errorData['detail'] ??
+              'Access denied - you may not be assigned to this branch',
+          'is_permission_error': true,
+          'status_code': response.statusCode,
+        };
+      } else if (response.statusCode == 404) {
+        // Branch not found
+        return {
+          'success': false,
+          'error': 'Branch not found',
+          'is_not_found_error': true,
+          'status_code': response.statusCode,
         };
       } else {
+        // Other HTTP errors
         return {
           'success': false,
           'error': 'HTTP ${response.statusCode}: ${response.body}',
+          'status_code': response.statusCode,
         };
       }
     } catch (e) {
-      print('❌ Error switching branch: $e');
-      return {'success': false, 'error': e.toString()};
+      print('❌ Exception in switchBranch: $e');
+      return {
+        'success': false,
+        'error': 'Network error: ${e.toString()}',
+        'is_network_error': true,
+      };
     }
   }
 
