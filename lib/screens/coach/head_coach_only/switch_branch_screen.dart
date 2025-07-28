@@ -127,29 +127,76 @@ class _SwitchBranchScreenState extends State<SwitchBranchScreen>
     setState(() => _isSwitching = true);
 
     try {
+      print(
+        '🔄 SWITCH: Starting switch to branch ${branch['id']} (${branch['name']})',
+      );
+
       final result = await ApiService.switchBranch(branch['id']);
+
+      print('🔄 SWITCH: API result = $result');
+
       if (result['success']) {
-        // ✅ CRITICAL: Update BranchNotifier immediately
-        BranchNotifier().updateBranch(
-          branch['id'],
-          branch['name'] ?? 'Unknown Branch',
-        );
+        // ✅ FIXED: Only update BranchNotifier if the switch was VERIFIED
+        final verified = result['verified'] ?? false;
+        final actualBranchId = result['new_branch_id'];
+        final actualBranchName = result['new_branch_name'];
 
-        setState(() => _currentBranch = branch);
-        _showSuccess('Switched to ${branch['name']}');
-        HapticFeedback.lightImpact();
+        if (verified && actualBranchId == branch['id']) {
+          print('✅ SWITCH: Verified successful - updating BranchNotifier');
 
-        // ✅ Return success result to home screen
-        Future.delayed(const Duration(seconds: 1), () {
-          if (mounted)
-            Navigator.of(context).pop(true); // Return true for success
-        });
+          // Update BranchNotifier with VERIFIED data from API response
+          BranchNotifier().updateBranch(
+            actualBranchId,
+            actualBranchName ?? branch['name'] ?? 'Unknown Branch',
+          );
+
+          // Update local state with the branch that was actually switched to
+          setState(() => _currentBranch = branch);
+
+          _showSuccess(
+            'Successfully switched to ${actualBranchName ?? branch['name']}',
+          );
+          HapticFeedback.lightImpact();
+
+          // Return success to home screen after a short delay
+          Future.delayed(const Duration(seconds: 1), () {
+            if (mounted) Navigator.of(context).pop(true);
+          });
+        } else {
+          // API said success but verification failed
+          print('❌ SWITCH: API success but verification failed');
+          print('   Expected branch: ${branch['id']}');
+          print('   Actual branch: $actualBranchId');
+          print('   Verified: $verified');
+
+          _showError(
+            'Switch failed: Verification error. Expected branch ${branch['id']} but got $actualBranchId',
+          );
+        }
       } else {
-        _showError('Failed to switch branch: ${result['error']}');
+        // Handle specific error types from the bulletproof API
+        final error = result['error'] ?? 'Unknown error';
+        final isInconsistency = result['inconsistency_detected'] ?? false;
+        final isPermissionError = result['is_permission_error'] ?? false;
+        final isNotFoundError = result['is_not_found_error'] ?? false;
+
+        print('❌ SWITCH: Failed - $error');
+
+        if (isInconsistency) {
+          _showError(
+            'Branch switch inconsistency detected. Please try again or contact support.',
+          );
+        } else if (isPermissionError) {
+          _showError('Access denied: You may not be assigned to this branch.');
+        } else if (isNotFoundError) {
+          _showError('Branch not found. Please refresh and try again.');
+        } else {
+          _showError('Failed to switch branch: $error');
+        }
       }
     } catch (e) {
-      print('❌ Error switching branch: $e');
-      _showError('Failed to switch branch');
+      print('❌ SWITCH: Exception occurred: $e');
+      _showError('Network error occurred while switching branch');
     } finally {
       setState(() => _isSwitching = false);
     }
