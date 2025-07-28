@@ -7,7 +7,7 @@ class ApiService {
   // Replace with your actual backend URL
   static const String baseUrl =
       'https://marvelous-tranquility.railway.internal';
-      
+
   static const _storage = FlutterSecureStorage();
 
   // Make storage accessible for other classes
@@ -1600,7 +1600,9 @@ class ApiService {
     try {
       final headers = await _getHeaders();
       final response = await http.post(
-        Uri.parse('$baseUrl/branches/select-branch/$branchId'),
+        Uri.parse(
+          '$baseUrl/coach/set-active-branch/$branchId',
+        ), // ✅ CORRECT URL
         headers: headers,
       );
 
