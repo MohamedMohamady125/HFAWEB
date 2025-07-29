@@ -1,5 +1,3 @@
-// lib/screens/coach/head_coach_only/head_coach_home_screen.dart (or RegularCoachHomeScreen.dart)
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../services/api_service.dart';
@@ -18,8 +16,8 @@ import '../shared/gear.dart';
 import '../coach_profile_screen.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-// Import the NEW screen you want to navigate to first
-import 'assign_coaches_screen.dart'; // <--- CHANGE THIS IMPORT (or add if not there)
+import 'assign_coaches_screen.dart';
+import '../../../widgets/current_branch_widget.dart';
 
 class RegularCoachHomeScreen extends StatefulWidget {
   const RegularCoachHomeScreen({super.key});
@@ -42,7 +40,6 @@ class _RegularCoachHomeScreenState extends State<RegularCoachHomeScreen> {
     super.initState();
     _pageController = PageController(initialPage: _selectedIndex);
     _loadUserData();
-
     BranchNotifier().addListener(_onBranchChangedInHome);
   }
 
@@ -79,7 +76,6 @@ class _RegularCoachHomeScreenState extends State<RegularCoachHomeScreen> {
           _user = userData;
           _name = userData['name'] ?? '';
         });
-
         await _loadBranchInfo(userData['branch_id']);
       } else {
         setState(() {
@@ -105,22 +101,59 @@ class _RegularCoachHomeScreenState extends State<RegularCoachHomeScreen> {
     }
 
     try {
-      final result = await ApiService.getBranchDetails(branchId);
-      if (result['success']) {
-        final branchName = result['data']['name'] ?? 'Unknown Branch';
+      print('🔄 Loading branch info for ID: $branchId');
+      final nameResult = await ApiService.getBranchName(branchId);
+      if (nameResult['success'] && nameResult['data'] != null) {
+        final branchName = nameResult['data']['name'] ?? 'Unknown Branch';
         setState(() {
           _branchName = branchName;
           _isLoading = false;
         });
         BranchNotifier().updateBranch(branchId, branchName);
-      } else {
+        print('✅ Branch name loaded via name endpoint: $branchName');
+        return;
+      }
+
+      final detailsResult = await ApiService.getBranchDetails(branchId);
+      if (detailsResult['success'] && detailsResult['data'] != null) {
+        final branchName = detailsResult['data']['name'] ?? 'Unknown Branch';
         setState(() {
-          _branchName = 'Branch #$branchId';
+          _branchName = branchName;
           _isLoading = false;
         });
-        BranchNotifier().updateBranch(branchId, 'Branch #$branchId');
+        BranchNotifier().updateBranch(branchId, branchName);
+        print('✅ Branch name loaded via details endpoint: $branchName');
+        return;
       }
+
+      print('⚠️ Both name and details failed, trying branches list...');
+      final branchesResult = await ApiService.getAllBranches();
+      if (branchesResult['success']) {
+        final branches = List<Map<String, dynamic>>.from(
+          branchesResult['data'] ?? [],
+        );
+        final branch = branches.firstWhere(
+          (b) => b['id'] == branchId,
+          orElse: () => {'name': 'Branch #$branchId'},
+        );
+        final branchName = branch['name'] ?? 'Branch #$branchId';
+        setState(() {
+          _branchName = branchName;
+          _isLoading = false;
+        });
+        BranchNotifier().updateBranch(branchId, branchName);
+        print('✅ Branch name from branches list: $branchName');
+        return;
+      }
+
+      setState(() {
+        _branchName = 'Branch #$branchId';
+        _isLoading = false;
+      });
+      BranchNotifier().updateBranch(branchId, 'Branch #$branchId');
+      print('⚠️ Using fallback branch name: Branch #$branchId');
     } catch (e) {
+      print('❌ Error loading branch info: $e');
       setState(() {
         _branchName = 'Branch #$branchId';
         _isLoading = false;
@@ -194,22 +227,16 @@ class _RegularCoachHomeScreenState extends State<RegularCoachHomeScreen> {
     final result = await Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (context) => const SwitchBranchScreen()));
-
     if (result == true && mounted) {
       print('🔄 Branch switch detected, reloading home screen data');
       await _loadUserData();
     }
   }
 
-  // 👇 UPDATE THIS NAVIGATION METHOD to go to AssignCoachesScreen
   void _navigateToCoachAssignment() {
     HapticFeedback.lightImpact();
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder:
-            (context) =>
-                const AssignCoachesScreen(), // <--- NAVIGATE TO ASSIGNCOACHESSCREEN
-      ),
+      MaterialPageRoute(builder: (context) => const AssignCoachesScreen()),
     );
   }
 
@@ -220,7 +247,8 @@ class _RegularCoachHomeScreenState extends State<RegularCoachHomeScreen> {
         content: Text(s.featureComingSoon(feature)),
         backgroundColor: Colors.blue,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        margin: const EdgeInsets.all(16),
       ),
     );
   }
@@ -238,14 +266,21 @@ class _RegularCoachHomeScreenState extends State<RegularCoachHomeScreen> {
 
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF0F2F5),
+        backgroundColor: const Color(0xFFF5F7FA),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const CircularProgressIndicator(color: Color(0xFF007AFF)),
-              const SizedBox(height: 16),
-              Text(s.loadingDashboard, style: const TextStyle(fontSize: 16)),
+              const CircularProgressIndicator(color: Color(0xFF1E88E5)),
+              const SizedBox(height: 20),
+              Text(
+                s.loadingDashboard,
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ],
           ),
         ),
@@ -254,20 +289,48 @@ class _RegularCoachHomeScreenState extends State<RegularCoachHomeScreen> {
 
     if (_error != null) {
       return Scaffold(
-        backgroundColor: const Color(0xFFF0F2F5),
+        backgroundColor: const Color(0xFFF5F7FA),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error, size: 64, color: Colors.red),
-              const SizedBox(height: 16),
-              Text(
-                _error!,
-                style: const TextStyle(fontSize: 16, color: Colors.red),
-                textAlign: TextAlign.center,
+              const Icon(
+                Icons.error_outline,
+                size: 80,
+                color: Colors.redAccent,
               ),
               const SizedBox(height: 20),
-              ElevatedButton(onPressed: _loadUserData, child: Text(s.retry)),
+              Text(
+                _error!,
+                style: const TextStyle(
+                  fontSize: 18,
+                  color: Colors.redAccent,
+                  fontWeight: FontWeight.w500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _loadUserData,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1E88E5),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  s.retry,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -275,7 +338,7 @@ class _RegularCoachHomeScreenState extends State<RegularCoachHomeScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F2F5),
+      backgroundColor: const Color(0xFFF5F7FA),
       body: PageView(
         controller: _pageController,
         onPageChanged: (index) {
@@ -290,29 +353,52 @@ class _RegularCoachHomeScreenState extends State<RegularCoachHomeScreen> {
           const ProfileScreen(),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: [
-          BottomNavigationBarItem(icon: const Icon(Icons.home), label: s.home),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.chat),
-            label: s.threads,
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          items: [
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.home, size: 28),
+              label: s.home,
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.chat, size: 28),
+              label: s.threads,
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.inventory, size: 28),
+              label: s.gear,
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.account_circle, size: 28),
+              label: s.profile,
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          selectedItemColor: const Color(0xFF1E88E5),
+          unselectedItemColor: Colors.grey[600],
+          selectedLabelStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.inventory),
-            label: s.gear,
+          unselectedLabelStyle: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w400,
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.account_circle),
-            label: s.profile,
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: const Color(0xFF007AFF),
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        elevation: 10,
+          onTap: _onItemTapped,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.white,
+          elevation: 0,
+        ),
       ),
     );
   }
@@ -321,131 +407,110 @@ class _RegularCoachHomeScreenState extends State<RegularCoachHomeScreen> {
     final s = AppLocalizations.of(context)!;
     return Column(
       children: [
-        // Beautiful Header Section
         Container(
           width: double.infinity,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF007AFF), Color(0xFF0066CC), Color(0xFF0052A3)],
+              colors: [Color(0xFF1976D2), Color(0xFF1E88E5), Color(0xFF42A5F5)],
             ),
             borderRadius: BorderRadius.only(
-              bottomLeft: Radius.circular(30),
-              bottomRight: Radius.circular(30),
+              bottomLeft: Radius.circular(40),
+              bottomRight: Radius.circular(40),
             ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 12,
+                offset: Offset(0, 4),
+              ),
+            ],
           ),
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 30),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 36),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Welcome Text
-                  Text(
-                    s.welcome(_firstName),
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    s.coachDashboard,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white.withOpacity(0.9),
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Branch Info Card
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.white.withOpacity(0.3),
-                        width: 1,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              s.welcome(_firstName),
+                              style: const TextStyle(
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              s.coachDashboard,
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white.withOpacity(0.85),
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.location_on,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Current Branch',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.8),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                _branchName,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: _navigateToSwitchBranch,
-                          child: Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.swap_horiz,
-                              color: Colors.white,
-                              size: 18,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      _buildSmallBranchWidget(),
+                    ],
                   ),
                 ],
               ),
             ),
           ),
         ),
-
-        // Scrollable Content
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             child: Column(
-              children: [_buildToolsGrid(), const SizedBox(height: 40)],
+              children: [_buildToolsGrid(), const SizedBox(height: 48)],
             ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSmallBranchWidget() {
+    return GestureDetector(
+      onTap: _navigateToSwitchBranch,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.25),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.white.withOpacity(0.4), width: 1.5),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.location_on_outlined,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              BranchNotifier().currentBranchName ?? _branchName,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -455,73 +520,76 @@ class _RegularCoachHomeScreenState extends State<RegularCoachHomeScreen> {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
-      mainAxisSpacing: 16,
-      crossAxisSpacing: 16,
-      childAspectRatio: 1.1,
+      mainAxisSpacing: 20,
+      crossAxisSpacing: 20,
+      childAspectRatio: 1.2,
       children: [
         _buildToolCard(
           title: s.registrationRequests,
           onTap: _navigateToRegistrationRequests,
-          color: Colors.green,
+          color: const Color(0xFF4CAF50),
+          icon: Icons.person_add,
         ),
         _buildToolCard(
           title: s.attendance,
           onTap: _navigateToWeeklyAttendance,
-          color: Colors.teal,
+          color: const Color(0xFF26A69A),
+          icon: Icons.check_circle,
         ),
         _buildToolCard(
           title: s.attendanceCalendar,
           onTap: _navigateToMonthlyAttendance,
-          color: Colors.green,
+          color: const Color(0xFF4CAF50),
+          icon: Icons.calendar_today,
           isAttendanceCalendar: true,
-          icon: '📅',
         ),
         _buildToolCard(
           title: s.athletesList,
           onTap: _navigateToAthletesList,
-          color: Colors.indigo,
+          color: const Color(0xFF3F51B5),
+          icon: Icons.group,
           isAthletesList: true,
-          icon: '👥',
         ),
         _buildToolCard(
           title: s.swimMeetPerformance,
           onTap: _navigateToPerformanceLogs,
-          color: Colors.red,
+          color: const Color(0xFFF44336),
+          icon: Icons.pool,
           isSwimMeetPerformance: true,
-          icon: '🏊‍♂️',
         ),
         _buildToolCard(
-          title: s.athletesMeasurements, // Updated to use localized string
+          title: s.athletesMeasurements,
           onTap: _navigateToAthletesMeasurements,
-          color: Colors.deepPurple,
+          color: const Color(0xFF7E57C2),
+          icon: Icons.straighten,
           isAthletesMeasurements: true,
-          icon: '📏',
         ),
         _buildToolCard(
           title: s.payments,
           onTap: _navigateToPaymentManagement,
-          color: Colors.amber,
+          color: const Color(0xFFFFA000),
+          icon: Icons.payment,
           isPayments: true,
-          icon: '💳',
         ),
         _buildToolCard(
           title: s.switchBranch,
           onTap: _navigateToSwitchBranch,
-          color: Colors.orange,
+          color: const Color(0xFFFF9800),
+          icon: Icons.swap_horiz,
           isSwitchBranch: true,
-          icon: '🔄',
         ),
         _buildToolCard(
           title: s.attendanceSeason,
           onTap: () => _showComingSoon(s.attendanceSeason),
-          color: Colors.purple,
+          color: const Color(0xFFAB47BC),
+          icon: Icons.event,
           isAttendanceSeason: true,
         ),
         _buildToolCard(
-          title: s.coachBranchAssignment, // Updated to use localized string
+          title: s.coachBranchAssignment,
           onTap: _navigateToCoachAssignment,
-          color: Colors.blueGrey,
-          icon: '🧑‍🏫',
+          color: const Color(0xFF78909C),
+          icon: Icons.supervisor_account,
         ),
       ],
     );
@@ -539,99 +607,54 @@ class _RegularCoachHomeScreenState extends State<RegularCoachHomeScreen> {
     bool isSwimMeetPerformance = false,
     bool isSwitchBranch = false,
     bool isAthletesMeasurements = false,
-    String? icon,
+    IconData? icon,
   }) {
-    Color backgroundColor = Colors.white;
-    Color borderColor = Colors.transparent;
-    Color textColor = Colors.black;
-    double borderWidth = 0;
-
-    if (isAttendanceSeason) {
-      backgroundColor = Colors.white;
-      borderColor = Colors.black;
-      borderWidth = 2;
-      textColor = Colors.black;
-    } else if (isAttendanceCalendar) {
-      backgroundColor = Colors.white;
-      borderColor = const Color(0xFF34C759);
-      borderWidth = 2;
-      textColor = const Color(0xFF34C759);
-    } else if (isPayments) {
-      backgroundColor = Colors.white;
-      borderColor = Colors.amber;
-      borderWidth = 2;
-      textColor = Colors.amber[700]!;
-    } else if (isAthletesList) {
-      backgroundColor = Colors.white;
-      borderColor = Colors.indigo;
-      borderWidth = 2;
-      textColor = Colors.indigo[700]!;
-    } else if (isSwimMeetPerformance) {
-      backgroundColor = Colors.white;
-      borderColor = Colors.red;
-      borderWidth = 2;
-      textColor = Colors.red[700]!;
-    } else if (isSwitchBranch) {
-      backgroundColor = Colors.white;
-      borderColor = Colors.orange;
-      borderWidth = 2;
-      textColor = Colors.orange[700]!;
-    } else if (isAthletesMeasurements) {
-      backgroundColor = Colors.white;
-      borderColor = Colors.deepPurple;
-      borderWidth = 2;
-      textColor = Colors.deepPurple[700]!;
-    }
-
     return GestureDetector(
-      onTap: onTap,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        onTap();
+      },
       child: Container(
-        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: backgroundColor,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border:
-              borderWidth > 0
-                  ? Border.all(color: borderColor, width: borderWidth)
-                  : null,
           boxShadow: [
             BoxShadow(
-              color:
-                  isAttendanceCalendar
-                      ? const Color(0xFF34C759).withOpacity(0.15)
-                      : isPayments
-                      ? Colors.amber.withOpacity(0.15)
-                      : isAthletesList
-                      ? Colors.indigo.withOpacity(0.15)
-                      : isSwimMeetPerformance
-                      ? Colors.red.withOpacity(0.15)
-                      : isSwitchBranch
-                      ? Colors.orange.withOpacity(0.15)
-                      : isAthletesMeasurements
-                      ? Colors.deepPurple.withOpacity(0.15)
-                      : Colors.black.withOpacity(0.08),
-              blurRadius: 8,
+              color: color.withOpacity(0.2),
+              blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
+          border: Border.all(color: color.withOpacity(0.3), width: 1.5),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: textColor,
-              ),
-              textAlign: TextAlign.center,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: onTap,
+            splashColor: color.withOpacity(0.1),
+            highlightColor: color.withOpacity(0.05),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (icon != null) ...[
+                  Icon(icon, size: 32, color: color),
+                  const SizedBox(height: 12),
+                ],
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            if (icon != null) ...[
-              const SizedBox(height: 6),
-              Text(icon, style: const TextStyle(fontSize: 22)),
-            ],
-          ],
+          ),
         ),
       ),
     );

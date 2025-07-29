@@ -6,7 +6,7 @@ import '../../services/auth_services.dart'; // Add this import
 class ApiService {
   // Replace with your actual backend URL
   static const String baseUrl =
-      'https://marvelous-tranquility.railway.internal';
+      'https://backendtest-production-acc4.up.railway.app';
 
   static const _storage = FlutterSecureStorage();
 
@@ -17,14 +17,48 @@ class ApiService {
   // Replace your _getHeaders() method in ApiService with this:
 
   static Future<Map<String, String>> _getHeaders() async {
-    // Just get token from storage - no syncing!
+    // Try to get token from storage
     final token = await _storage.read(key: 'auth_token');
+
+    print(
+      '🔍 _getHeaders() - Token from storage: ${token != null ? 'Available (${token.substring(0, 20)}...)' : 'Missing'}',
+    );
+
+    // If no token, check if we should try to get login data from AuthService
+    if (token == null) {
+      print('❌ No token in ApiService storage, checking AuthService...');
+      try {
+        // Import your AuthService and check its data
+        final loginData = await AuthService.getLoginData();
+        print('🔍 AuthService data: $loginData');
+
+        if (loginData['token'] != null) {
+          // Store the token in ApiService storage
+          await _storage.write(key: 'auth_token', value: loginData['token']);
+          await _storage.write(key: 'user_type', value: loginData['user_type']);
+          await _storage.write(key: 'user_id', value: loginData['user_id']);
+
+          print('✅ Synced token from AuthService to ApiService');
+
+          final headers = {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ${loginData['token']}',
+          };
+
+          print('🔍 _getHeaders() - Final headers: ${headers.keys.toList()}');
+          return headers;
+        }
+      } catch (e) {
+        print('❌ Error syncing from AuthService: $e');
+      }
+    }
 
     final headers = {
       'Content-Type': 'application/json',
       if (token != null) 'Authorization': 'Bearer $token',
     };
 
+    print('🔍 _getHeaders() - Final headers: ${headers.keys.toList()}');
     return headers;
   }
 
@@ -1562,137 +1596,36 @@ class ApiService {
 
   // =================== SWITCH BRANCH ENDPOINT ===================
 
-  // =================== BULLETPROOF BRANCH SWITCHING ===================
-
   static Future<Map<String, dynamic>> switchBranch(int branchId) async {
     try {
-      print('🔄 BULLETPROOF: Switching to branch $branchId');
       final headers = await _getHeaders();
-
-      // Get user type for logging and validation
-      final userType = await getUserType();
-      final userId = await getUserId();
-      print('🔄 User: $userType (ID: $userId)');
-
-      // ✅ STEP 1: Make the API call
       final response = await http.post(
-        Uri.parse('$baseUrl/coach/set-active-branch/$branchId'),
+        Uri.parse('$baseUrl/branches/select-branch/$branchId'),
         headers: headers,
       );
 
-      print('🔄 API Response: ${response.statusCode}');
+      print('🔄 Switch branch response: ${response.statusCode}');
       print('🔄 Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-
-        // ✅ STEP 2: Check if API confirms success
-        final apiSuccess = responseData['success'] ?? false;
-        final apiVerified = responseData['verified'] ?? false;
-
-        if (!apiSuccess || !apiVerified) {
-          return {
-            'success': false,
-            'error': 'API returned success but verification failed',
-            'api_response': responseData,
-          };
-        }
-
-        print(
-          '✅ API confirmed switch successful, waiting before verification...',
-        );
-
-        // ✅ STEP 3: Wait and refresh profile to double-check
-        await Future.delayed(Duration(milliseconds: 1000)); // 1 second wait
-
-        final profileResult = await getUserProfile();
-
-        if (profileResult['success']) {
-          final updatedUser = profileResult['data'];
-          final actualBranchId = updatedUser['branch_id'];
-
-          print(
-            '🔄 Profile verification: Expected=$branchId, Actual=$actualBranchId',
-          );
-
-          // ✅ STEP 4: Triple verification
-          if (actualBranchId == branchId) {
-            print('✅ BULLETPROOF SUCCESS: Branch switch fully verified!');
-            return {
-              'success': true,
-              'message':
-                  responseData['message'] ?? 'Branch switched successfully',
-              'new_branch_id': branchId,
-              'new_branch_name': responseData['new_active_branch_name'],
-              'previous_branch_id': responseData['previous_branch_id'],
-              'verified': true,
-              'user_role': userType,
-              'user_data': updatedUser,
-              'api_confirmed': apiSuccess,
-              'profile_confirmed': true,
-            };
-          } else {
-            // Profile shows different branch - this is the inconsistency!
-            print(
-              '❌ INCONSISTENCY DETECTED: API says $branchId but profile shows $actualBranchId',
-            );
-            return {
-              'success': false,
-              'error':
-                  'INCONSISTENCY: API succeeded but profile shows branch $actualBranchId instead of $branchId',
-              'expected_branch': branchId,
-              'actual_branch': actualBranchId,
-              'api_response': responseData,
-              'profile_data': updatedUser,
-              'inconsistency_detected': true,
-            };
-          }
-        } else {
-          print('❌ Profile refresh failed after successful API call');
-          return {
-            'success': false,
-            'error':
-                'Branch switch API succeeded but unable to verify with profile refresh',
-            'api_response': responseData,
-            'profile_error': profileResult['error'],
-          };
-        }
-      } else if (response.statusCode == 403) {
-        // Permission denied - coach not assigned to branch
-        final errorData = jsonDecode(response.body);
         return {
-          'success': false,
-          'error':
-              errorData['detail'] ??
-              'Access denied - you may not be assigned to this branch',
-          'is_permission_error': true,
-          'status_code': response.statusCode,
-        };
-      } else if (response.statusCode == 404) {
-        // Branch not found
-        return {
-          'success': false,
-          'error': 'Branch not found',
-          'is_not_found_error': true,
-          'status_code': response.statusCode,
+          'success': true,
+          'message': responseData['message'] ?? 'Branch switched successfully',
         };
       } else {
-        // Other HTTP errors
         return {
           'success': false,
           'error': 'HTTP ${response.statusCode}: ${response.body}',
-          'status_code': response.statusCode,
         };
       }
     } catch (e) {
-      print('❌ Exception in switchBranch: $e');
-      return {
-        'success': false,
-        'error': 'Network error: ${e.toString()}',
-        'is_network_error': true,
-      };
+      print('❌ Error switching branch: $e');
+      return {'success': false, 'error': e.toString()};
     }
   }
+
+  // ✅ FIXED: Replace the getBranchDetails method in your ApiService
 
   static Future<Map<String, dynamic>> getBranchDetails(int branchId) async {
     try {
@@ -1706,8 +1639,26 @@ class ApiService {
       print('🔄 Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> branchData = jsonDecode(response.body);
-        return {'success': true, 'data': branchData};
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+        // ✅ FIXED: Handle the correct response structure
+        if (responseData['success'] == true && responseData['data'] != null) {
+          final branchData = responseData['data'];
+
+          print('✅ Branch details parsed successfully:');
+          print('   Branch ID: ${branchData['id']}');
+          print('   Branch Name: ${branchData['name']}');
+
+          return {
+            'success': true,
+            'data': branchData, // ✅ Return the actual branch data
+          };
+        } else {
+          return {
+            'success': false,
+            'error': 'Invalid response format from server',
+          };
+        }
       } else {
         return {
           'success': false,
@@ -1716,6 +1667,42 @@ class ApiService {
       }
     } catch (e) {
       print('❌ Error getting branch details: $e');
+      return {'success': false, 'error': e.toString()};
+    }
+  }
+
+  // ✅ ALTERNATIVE: Add a simpler method for just getting branch name
+  static Future<Map<String, dynamic>> getBranchName(int branchId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/branches/$branchId/name'),
+        headers: headers,
+      );
+
+      print('🔄 Get branch name response: ${response.statusCode}');
+      print('🔄 Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = jsonDecode(response.body);
+
+        if (responseData['success'] == true && responseData['data'] != null) {
+          final branchInfo = responseData['data'];
+
+          print('✅ Branch name retrieved: ${branchInfo['name']}');
+
+          return {'success': true, 'data': branchInfo};
+        } else {
+          return {'success': false, 'error': 'Invalid response format'};
+        }
+      } else {
+        return {
+          'success': false,
+          'error': 'HTTP ${response.statusCode}: ${response.body}',
+        };
+      }
+    } catch (e) {
+      print('❌ Error getting branch name: $e');
       return {'success': false, 'error': e.toString()};
     }
   }

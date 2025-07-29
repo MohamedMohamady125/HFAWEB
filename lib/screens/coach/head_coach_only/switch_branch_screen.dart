@@ -72,7 +72,9 @@ class _SwitchBranchScreenState extends State<SwitchBranchScreen>
     }
   }
 
-  // ✅ FIXED: Replace this entire method in your SwitchBranchScreen class
+  // ✅ SIMPLE SOLUTION: Replace _switchToBranch with this quick login approach
+
+  // ✅ SIMPLE: Trust the bulletproof backend
   Future<void> _switchToBranch(Map<String, dynamic> branch) async {
     if (branch['id'] == _currentBranch?['id']) {
       _showInfo('You are already managing ${branch['name']}');
@@ -129,118 +131,90 @@ class _SwitchBranchScreenState extends State<SwitchBranchScreen>
 
     try {
       print(
-        '🔄 SWITCH: Starting switch to branch ${branch['id']} (${branch['name']})',
+        '🔄 SIMPLE: Switching to branch ${branch['id']} (${branch['name']})',
       );
 
       final result = await ApiService.switchBranch(branch['id']);
 
-      print('🔄 SWITCH: Complete API result = $result');
+      print('🔄 SIMPLE: API result = $result');
 
       if (result['success'] == true) {
-        // ✅ FIXED: Check for your actual API response structure
+        // ✅ SIMPLE: Trust the bulletproof backend
+        final actualBranchId = result['new_branch_id'] ?? branch['id'];
+        final actualBranchName = result['new_branch_name'] ?? branch['name'];
 
-        // Your API might return different verification fields, let's be flexible
-        final apiConfirmed = result['api_confirmed'] ?? true;
-        final profileConfirmed = result['profile_confirmed'] ?? true;
-        final verified = result['verified'] ?? true;
+        print('✅ SIMPLE: Backend confirmed success - updating UI');
 
-        // Get the actual branch info from different possible fields
-        final actualBranchId =
-            result['new_branch_id'] ??
-            result['new_active_branch_id'] ??
-            branch['id'];
-        final actualBranchName =
-            result['new_branch_name'] ??
-            result['new_active_branch_name'] ??
-            branch['name'];
+        // Update BranchNotifier immediately
+        BranchNotifier().updateBranch(actualBranchId, actualBranchName);
 
-        print('🔄 SWITCH: Verification status:');
-        print('   API Confirmed: $apiConfirmed');
-        print('   Profile Confirmed: $profileConfirmed');
-        print('   Verified: $verified');
-        print('   Expected Branch ID: ${branch['id']}');
-        print('   Actual Branch ID: $actualBranchId');
+        setState(() => _currentBranch = branch);
 
-        // ✅ More lenient verification - if API says success, trust it
-        if (apiConfirmed && (actualBranchId == branch['id'] || verified)) {
-          print('✅ SWITCH: Success verified - updating BranchNotifier');
+        _showSuccess('Successfully switched to $actualBranchName');
+        HapticFeedback.lightImpact();
 
-          // Update BranchNotifier with the successful switch
-          BranchNotifier().updateBranch(
-            actualBranchId,
-            actualBranchName ?? 'Unknown Branch',
-          );
-
-          // Update local state
-          setState(() => _currentBranch = branch);
-
-          _showSuccess(
-            'Successfully switched to ${actualBranchName ?? branch['name']}',
-          );
-          HapticFeedback.lightImpact();
-
-          // Return success to home screen
-          Future.delayed(const Duration(seconds: 1), () {
-            if (mounted) Navigator.of(context).pop(true);
-          });
-        } else {
-          // Handle verification issues more gracefully
-          print('⚠️ SWITCH: Verification concerns but API succeeded');
-          print('   Proceeding with caution...');
-
-          // Still update BranchNotifier since API said success
-          BranchNotifier().updateBranch(
-            branch['id'],
-            branch['name'] ?? 'Unknown Branch',
-          );
-
-          setState(() => _currentBranch = branch);
-          _showSuccess(
-            'Switched to ${branch['name']} (with verification warning)',
-          );
-          HapticFeedback.lightImpact();
-
-          Future.delayed(const Duration(seconds: 1), () {
-            if (mounted) Navigator.of(context).pop(true);
-          });
-        }
+        // Navigate back with success
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) Navigator.of(context).pop(true);
+        });
       } else {
         // Handle API failure
         final error = result['error'] ?? 'Unknown error occurred';
-        final isInconsistency = result['inconsistency_detected'] ?? false;
-        final isPermissionError = result['is_permission_error'] ?? false;
-        final isNotFoundError = result['is_not_found_error'] ?? false;
-        final isNetworkError = result['is_network_error'] ?? false;
-
-        print('❌ SWITCH: API returned failure');
-        print('   Error: $error');
-        print('   Inconsistency: $isInconsistency');
-        print('   Permission Error: $isPermissionError');
-        print('   Not Found: $isNotFoundError');
-        print('   Network Error: $isNetworkError');
-
-        if (isInconsistency) {
-          _showError(
-            'Branch switch inconsistency detected. Please refresh and try again.',
-          );
-        } else if (isPermissionError) {
-          _showError('Access denied: You may not be assigned to this branch.');
-        } else if (isNotFoundError) {
-          _showError('Branch not found. Please refresh the branch list.');
-        } else if (isNetworkError) {
-          _showError(
-            'Network error. Please check your connection and try again.',
-          );
-        } else {
-          _showError('Failed to switch branch: $error');
-        }
+        print('❌ SIMPLE: API failed - $error');
+        _showError('Failed to switch branch: $error');
       }
     } catch (e) {
-      print('❌ SWITCH: Exception in _switchToBranch: $e');
-      _showError('An unexpected error occurred. Please try again.');
+      print('❌ SIMPLE: Exception - $e');
+      _showError('Network error occurred while switching branch');
     } finally {
       setState(() => _isSwitching = false);
     }
+  }
+
+  // ✅ OPTIONAL: Add this method for even better UX
+  Future<void> _quickSwitchWithLoadingOverlay(
+    Map<String, dynamic> branch,
+  ) async {
+    // Show full-screen loading overlay
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => WillPopScope(
+            onWillPop: () async => false,
+            child: Container(
+              color: Colors.black.withOpacity(0.8),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const CircularProgressIndicator(
+                      color: Color(0xFF007AFF),
+                      strokeWidth: 3,
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      'Switching to ${branch['name']}...',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Please wait while we load the branch data',
+                      style: TextStyle(color: Colors.white70, fontSize: 14),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+    );
+
+    // Perform the quick login
+    await _switchToBranch(branch);
   }
 
   void _showError(String message) {
