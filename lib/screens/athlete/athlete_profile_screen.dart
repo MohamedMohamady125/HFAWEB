@@ -105,46 +105,61 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
   }
 
   // ✅ ADD: Notification methods
-  void _checkNotificationStatus() {
+  void _checkNotificationStatus() async {
     try {
-      // Check if already subscribed
+      // Check both browser AND database
+      bool browserHasSubscription = false;
+      bool databaseHasSubscription = false;
+
+      // Check browser subscription
       js.context.callMethod('eval', [
         '''
-        (async function() {
-          if ('serviceWorker' in navigator && 'PushManager' in window) {
-            try {
-              const registration = await navigator.serviceWorker.getRegistration();
-              if (registration) {
-                const subscription = await registration.pushManager.getSubscription();
-                window.flutterNotificationStatus = subscription ? true : false;
-              } else {
-                window.flutterNotificationStatus = false;
-              }
-            } catch (e) {
+      (async function() {
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+          try {
+            const registration = await navigator.serviceWorker.getRegistration();
+            if (registration) {
+              const subscription = await registration.pushManager.getSubscription();
+              window.flutterNotificationStatus = subscription ? true : false;
+            } else {
               window.flutterNotificationStatus = false;
             }
-          } else {
+          } catch (e) {
             window.flutterNotificationStatus = false;
           }
-        })();
+        } else {
+          window.flutterNotificationStatus = false;
+        }
+      })();
       ''',
       ]);
 
-      // Check result after a delay
-      Future.delayed(Duration(milliseconds: 500), () {
-        try {
-          final status = js.context['flutterNotificationStatus'];
-          if (mounted) {
-            setState(() {
-              _notificationsEnabled = status == true;
-            });
-          }
-        } catch (e) {
-          print('Error checking notification status: $e');
-        }
-      });
+      // Check database subscription
+      final apiResult = await ApiService.checkSubscriptionStatus();
+      databaseHasSubscription = apiResult['hasActiveSubscription'] ?? false;
+
+      // Check browser result after delay
+      await Future.delayed(Duration(milliseconds: 500));
+      browserHasSubscription = js.context['flutterNotificationStatus'] == true;
+
+      // Only enabled if BOTH browser AND database have subscription
+      if (mounted) {
+        setState(() {
+          _notificationsEnabled =
+              browserHasSubscription && databaseHasSubscription;
+        });
+      }
+
+      print(
+        '🔔 Browser: $browserHasSubscription, Database: $databaseHasSubscription, Final: $_notificationsEnabled',
+      );
     } catch (e) {
-      print('Error in _checkNotificationStatus: $e');
+      print('Error checking notification status: $e');
+      if (mounted) {
+        setState(() {
+          _notificationsEnabled = false;
+        });
+      }
     }
   }
 
