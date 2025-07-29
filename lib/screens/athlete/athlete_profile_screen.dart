@@ -587,7 +587,7 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
                                         icon: const Icon(Icons.copy),
                                         onPressed: () async {
                                           final fullUrl =
-                                              'https://ornate-banoffee-460953.netlify.app/invite/${link['token']}';
+                                              'https://backendtest-production-acc4.up.railway.app/invite/${link['token']}';
                                           await Clipboard.setData(
                                             ClipboardData(text: fullUrl),
                                           );
