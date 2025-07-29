@@ -1939,6 +1939,28 @@ class ApiService {
       return {'success': false, 'error': e.toString()};
     }
   }
+
+  static Future<Map<String, dynamic>> checkSubscriptionStatus() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/notifications/webpush/status'),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return {
+          'success': true,
+          'hasActiveSubscription': data['hasActiveSubscription'] ?? false,
+        };
+      } else {
+        return {'success': false, 'hasActiveSubscription': false};
+      }
+    } catch (e) {
+      print('❌ Error checking subscription status: $e');
+      return {'success': false, 'hasActiveSubscription': false};
+    }
+  }
   // Add this method to your ApiService class in the GEAR MANAGEMENT ENDPOINTS section
 
   // =================== GEAR MANAGEMENT ENDPOINTS ===================
@@ -2195,25 +2217,4 @@ class ApiService {
   }
 
   // Add this function to your ApiService class
-  static Future<Map<String, dynamic>> checkSubscriptionStatus() async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/notifications/webpush/status'),
-        headers: await _getHeaders(),
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return {
-          'success': true,
-          'hasActiveSubscription': data['hasActiveSubscription'] ?? false,
-        };
-      } else {
-        return {'success': false, 'hasActiveSubscription': false};
-      }
-    } catch (e) {
-      print('❌ Error checking subscription status: $e');
-      return {'success': false, 'hasActiveSubscription': false};
-    }
-  }
 }

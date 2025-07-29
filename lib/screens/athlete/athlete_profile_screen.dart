@@ -62,6 +62,7 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
     _loadAllData();
     _checkNotificationStatus(); // ✅ ADD THIS
 
+
     // Listen to language changes
     _languageService.addListener(_onLanguageChanged);
   }
@@ -84,6 +85,8 @@ class _AthleteProfileScreenState extends State<AthleteProfileScreen>
   void _onLanguageChanged() {
     if (mounted) setState(() {});
   }
+
+  
 
   void _initializeAnimations() {
     _fadeController = AnimationController(

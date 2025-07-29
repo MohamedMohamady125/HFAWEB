@@ -13,11 +13,9 @@ import 'screens/coach/head_coach_only/head_coach_home_screen.dart';
 import 'dart:async';
 
 void main() async {
+  print('=== TESTING CHANGES: ${DateTime.now()} ==='); // <-- Add it here
   WidgetsFlutterBinding.ensureInitialized();
-
-  // ✅ Initialize services
   await LanguageService().initializeLanguage();
-
   runApp(const MyApp());
 }
 
